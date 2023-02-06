@@ -2,25 +2,26 @@ const express = require("express");
 const router = express.Router();
 const painPossibleDiag = require("../models/painPossibleDiagnostics");
 
-router.post("/painPossibleDiag", async (req, res) => {
+const possibleDiagnosis = (painBehaviorId) => {
+  const getPainPossibleDiag = painPossibleDiag.find({
+    painBehaviorId: painBehaviorId,
+    isPossibleDiag: true
+  }, {
+    isPossibleDiag: 0,
+    painBehaviorId: 0
+  }).populate("diagnosticsId");
+  return getPainPossibleDiag;
+}
+
+router.get("/painPossibleDiagBypainBehaviorId/:painBehaviorId", async (req, res) => {
   try {
-    const addPainPossibleDiag = new painPossibleDiag(req.body);
-    const savedPainPossibleDiag = await addPainPossibleDiag.save();
-    res.status(201).send(savedPainPossibleDiag);
+    const populatDiagnosis = await possibleDiagnosis(req.params.painBehaviorId);
+    const dignosis = populatDiagnosis.map((_diagnosis) => _diagnosis.diagnosticsId);
+    res.status(200).send(dignosis);
   } catch (err) {
     res.status(404).send(err);
   }
-});
-router.get(
-  "/painPossibleDiagBypainBehaviorId/:painBehaviorId",
-  async (req, res) => {
-    try {
-      const getPainPossibleDiag = await painPossibleDiag.find();
-      res.status(200).send(getPainPossibleDiag);
-    } catch (err) {
-      res.status(404).send(err);
-    }
-  }
+}
 );
 router.get("/painPossibleDiag", async (req, res) => {
   try {
