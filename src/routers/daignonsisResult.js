@@ -4,7 +4,7 @@ const router = express.Router();
 // Import the required model files
 const Probability = require("../models/probability");
 const AssignResult = require("../models/assignResult");
-const painPossibleDiag = require("../models/painPossibleDiagnostics");
+const PainPossibleDiag = require("../models/painPossibleDiagnostics");
 const PainBehaviorQuestion = require("../models/painBehaviorQuestion");
 
 // Function to retrieve the probability for a given pain behavior ID
@@ -16,11 +16,18 @@ const getProbabilityByPainBehaviorId = (request) => {
 
 // Function to retrieve the assign result for a given pain behavior ID and question answer
 const getAssignResultByPainBehaviorId = (request, question, index) => {
+  let painBehQuesId = "";
+  for (i = 0; i < question.length; i++) {
+      if (JSON.stringify(question[i].questionId._id) === JSON.stringify(request.questionAnswer[index].questionId)) {
+        painBehQuesId = question[i]._id;
+        break;
+    }
+  }
   // Find the result based on the painBehaviorId, DiagAnswer and painBehaviorQuestionId
   const result = AssignResult.find({
     painBehaviorId: request.painBehaviorId,
     DiagAnswer: request.questionAnswer[index].isYes,
-    painBehaviorQuestionId: question[index]._id
+    painBehaviorQuestionId: painBehQuesId
   }, {
     Percentage: 1,
     possibleDiagnosticId: 1
@@ -31,7 +38,7 @@ const getAssignResultByPainBehaviorId = (request, question, index) => {
 // Function to retrieve the possible diagnoses for a given pain behavior ID
 const possibleDiagnosis = (request) => {
   // Find the possible diagnosis based on the painBehaviorId and isPossibleDiag
-  const getPainPossibleDiag = painPossibleDiag.find({
+  const getPainPossibleDiag = PainPossibleDiag.find({
     painBehaviorId: request.painBehaviorId,
     isPossibleDiag: true
   }, {
@@ -44,7 +51,7 @@ const possibleDiagnosis = (request) => {
 // Function to retrieve the pain behavior questions for a given pain behavior ID
 const getPainBehaviorQuestion = (request) => {
   // Find the pain behavior question based on the painBehaviorId
-  const result = PainBehaviorQuestion.find({ painBehaviorId: request.painBehaviorId }, { _id: 1 });
+  const result = PainBehaviorQuestion.find({ painBehaviorId: request.painBehaviorId }).populate("questionId");
   return result;
 }
 
@@ -73,11 +80,11 @@ router.get("/calculateDiagnotics", async (req, res) => {
     // Initialize a variable to keep track of the percentage for each condition
     let per = 0;
     // Loop through the possible diagnoses
-    for(i=0; i<populateDiagnosis.length; i++){
+    for (i = 0; i < populateDiagnosis.length; i++) {
       // Loop through the assignResult array
-      for(j=0; j<assignResult.length; j++){
+      for (j = 0; j < assignResult.length; j++) {
         // If the possibleDiagnosticId in assignResult matches the ID of the current diagnosis, add the percentage to the per variable
-        if(JSON.stringify(assignResult[j].possibleDiagnosticId) === JSON.stringify(populateDiagnosis[i]._id)){
+        if (JSON.stringify(assignResult[j].possibleDiagnosticId) === JSON.stringify(populateDiagnosis[i]._id)) {
           per = per + assignResult[j].Percentage;
         }
       }
@@ -86,7 +93,7 @@ router.get("/calculateDiagnotics", async (req, res) => {
       per = 0;
       let obj = {
         possibleDiagnostic: populateDiagnosis[i].diagnosticsId.diagnosisName,
-        percentage : percentage
+        percentage: percentage
       };
       resultPercentage.push(obj);
     }
