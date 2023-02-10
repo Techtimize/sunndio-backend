@@ -6,6 +6,8 @@ const Probability = require("../models/probability");
 const AssignResult = require("../models/assignResult");
 const PainPossibleDiag = require("../models/painPossibleDiagnostics");
 const PainBehaviorQuestion = require("../models/painBehaviorQuestion");
+const errorMessageEn = require("../Error-Handling/error-handlingEn.json");
+const errorMessageEs = require("../Error-Handling/error-handlingEs.json");
 
 // Function to retrieve the probability for a given pain behavior ID
 const getProbabilityByPainBehaviorId = (request) => {
@@ -105,15 +107,31 @@ router.get("/calculateDiagnotics/:countryCode", async (req, res) => {
         };
         resultPercentage.push(obj);
       }
-      else{
-        res.status(400).json({ success: `"${req.params.countryCode}" this countryCode is not available` });
-      }
     }
-    // Send the resultPercentage array as a response with a status code of 200 (OK)
-    res.status(200).send(resultPercentage);
+    if (req.params.countryCode !== "es" && req.params.countryCode !== "en") {
+      // If the country code is not "es" or "en", retrieve the error message for invalid country code
+      const errorMessage = errorMessageEs.INVALID_COUNTRY_CODE;
+      // Return the error message with a status code of 400 Bad Request
+      res.status(errorMessage.statusCode).send({
+        success: false,
+        message: `${errorMessage.message}: "${req.params.countryCode}"`
+      });
+    }
+    else {
+      // Send the resultPercentage array as a response with a status code of 200 (OK)
+      res.status(200).send(resultPercentage);
+    }
   } catch (err) {
-    // Respond with a status code of 404 and the error message if there was an issue retrieving the data
-    res.status(404).send(err);
+    // If an error occurs, retrieve the error message for failed calculate the diagnosis result
+    const errorMessage = req.params.countryCode === "es"
+      ? errorMessageEs.CALCULATE_DIAGNOSIS_RESULT_FAILED
+      : req.params.countryCode === "en" ? errorMessageEn.CALCULATE_DIAGNOSIS_RESULT_FAILED : "";
+    // Return the error message with a status code of 404 Not Found
+    res.status(errorMessage.statusCode).send({
+      success: false,
+      message: errorMessage.message,
+      error: err.message
+    });
   }
 });
 

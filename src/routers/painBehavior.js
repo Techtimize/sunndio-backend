@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const painBehaviorModel = require("../models/painBehavior");
+const errorMessageEn = require("../Error-Handling/error-handlingEn.json");
+const errorMessageEs = require("../Error-Handling/error-handlingEs.json");
 
 // Route to insert pain behavior data into MongoDB
 router.post("/painbehavior", async (req, res) => {
@@ -30,9 +32,15 @@ router.get(
         );
         // Sending a 200 (OK) status and the found pain behaviors data as response
         res.status(200).send(foundPainBehaviors);
-      } catch (error) {
-        // Sending a 404 (Not Found) status and the error message as response
-        res.status(404).send(error);
+      } catch (err) {
+        // If an error occurs, retrieve the error message for failed pain behavior retrieval
+        const errorMessage = errorMessageEs.PAIN_BEHAVIORS_RETRIEVAL_FAILED;
+        // Return the error message with a status code of 404 Not Found
+        res.status(errorMessage.statusCode).send({
+          success: false,
+          message: errorMessage.message,
+          error: err.message
+        });
       }
     }
     else if (req.params.countryCode === "en") {
@@ -44,13 +52,25 @@ router.get(
         );
         // Sending a 200 (OK) status and the found pain behaviors data as response
         res.status(200).send(foundPainBehaviors);
-      } catch (error) {
-        // Sending a 404 (Not Found) status and the error message as response
-        res.status(404).send(error);
+      } catch (err) {
+        // If an error occurs, retrieve the error message for failed pain behavior retrieval
+        const errorMessage = errorMessageEn.PAIN_BEHAVIORS_RETRIEVAL_FAILED;
+        // Return the error message with a status code of 404 Not Found
+        res.status(errorMessage.statusCode).send({
+          success: false,
+          message: errorMessage.message,
+          error: err.message
+        });
       }
     }
-    else{
-      res.status(400).json({ success: `"${req.params.countryCode}" this countryCode is not available` });
+    else {
+      // If the country code is not "es" or "en", retrieve the error message for invalid country code
+      const errorMessage = errorMessageEs.INVALID_COUNTRY_CODE;
+      // Return the error message with a status code of 400 Bad Request
+      res.status(errorMessage.statusCode).send({
+        success: false,
+        message: `${errorMessage.message}: "${req.params.countryCode}"`
+      });
     }
   });
 
@@ -78,7 +98,7 @@ router.get("/painBehaviors/:countryCode", async (req, res) => {
       res.status(404).send(error);
     }
   }
-  else{
+  else {
     res.status(400).json({ success: `"${req.params.countryCode}" this countryCode is not available` });
   }
 });

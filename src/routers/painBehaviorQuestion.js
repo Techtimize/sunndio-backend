@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const painBehaviorQuestion = require("../models/painBehaviorQuestion");
+const errorMessageEn = require("../Error-Handling/error-handlingEn.json");
+const errorMessageEs = require("../Error-Handling/error-handlingEs.json");
 
 // get the question form the MongoDB by painBehaviorId
 router.get("/questionsByPainBehavior/:countryCode/:painBehaviorId", async (req, res) => {
@@ -27,7 +29,14 @@ router.get("/questionsByPainBehavior/:countryCode/:painBehaviorId", async (req, 
       }));
       res.status(200).send(questionEs);
     } catch (err) {
-      res.status(404).send(err);
+      // If an error occurs, retrieve the error message for failed questions by pain behavior id retrieval
+      const errorMessage = errorMessageEs.QUESTION_BY_PAIN_BEHAVIORS_RETRIEVAL_FAILED;
+      // Return the error message with a status code of 404 Not Found
+      res.status(errorMessage.statusCode).send({
+        success: false,
+        message: errorMessage.message,
+        error: err.message
+      });
     }
   }
   else if (req.params.countryCode === "en") {
@@ -53,11 +62,24 @@ router.get("/questionsByPainBehavior/:countryCode/:painBehaviorId", async (req, 
       }));
       res.status(200).send(questionEn);
     } catch (err) {
-      res.status(404).send(err);
+      // If an error occurs, retrieve the error message for failed questions by pain behavior id retrieval
+      const errorMessage = errorMessageEn.QUESTION_BY_PAIN_BEHAVIORS_RETRIEVAL_FAILED;
+      // Return the error message with a status code of 404 Not Found
+      res.status(errorMessage.statusCode).send({
+        success: false,
+        message: errorMessage.message,
+        error: err.message
+      });
     }
   }
-  else{
-    res.status(400).json({ success: `"${req.params.countryCode}" this countryCode is not available` });
+  else {
+    // If the country code is not "es" or "en", retrieve the error message for invalid country code
+    const errorMessage = errorMessageEs.INVALID_COUNTRY_CODE;
+    // Return the error message with a status code of 400 Bad Request
+    res.status(errorMessage.statusCode).send({
+      success: false,
+      message: `${errorMessage.message}: "${req.params.countryCode}"`
+    });
   }
 });
 

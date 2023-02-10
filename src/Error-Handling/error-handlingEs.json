@@ -1,0 +1,26 @@
+{
+    "PAIN_AREAS_RETRIEVAL_FAILED": {
+      "message": "Error al recuperar áreas de dolor en vivo",
+      "statusCode": 404
+    },
+    "PAIN_DEFINITIONS_RETRIEVAL_FAILED": {
+      "message": "No se pudo recuperar el dolor Definición",
+      "statusCode": 404
+    },
+    "PAIN_BEHAVIORS_RETRIEVAL_FAILED": {
+      "message": "No se pudo recuperar el comportamiento del dolor",
+      "statusCode": 404
+    },
+    "QUESTION_BY_PAIN_BEHAVIORS_RETRIEVAL_FAILED": {
+      "message": "Error al recuperar preguntas por Id. de comportamiento de dolor",
+      "statusCode": 404
+    },
+    "CALCULATE_DIAGNOSIS_RESULT_FAILED": {
+      "message": "Error al calcular el resultado del diagnóstico",
+      "statusCode": 404
+    },
+    "INVALID_COUNTRY_CODE": {
+      "message": "Código de país no válido",
+      "statusCode": 400
+    }
+  }

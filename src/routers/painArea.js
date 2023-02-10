@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const PainArea = require("../models/painArea");
+const errorMessageEn = require("../Error-Handling/error-handlingEn.json");
+const errorMessageEs = require("../Error-Handling/error-handlingEs.json");
 
 // Route to create a new pain area
 router.post("/painarea", async (req, res) => {
@@ -16,29 +18,50 @@ router.post("/painarea", async (req, res) => {
   }
 });
 
-// Route to get all live pain areas
+// Define the route for retrieving live pain areas
 router.get("/painareas/:countryCode", async (req, res) => {
-
+  // Check the country code from the request parameters
   if (req.params.countryCode === "es") {
     try {
-      // find all pain areas where isLive is true
+      // Attempt to retrieve live pain areas, excluding the `name` field
       const livePainAreas = await PainArea.find({ isLive: true }, { name: 0 });
+      // Return the live pain areas with a status code of 200 OK
       res.status(200).send(livePainAreas);
     } catch (err) {
-      res.status(404).send(err);
+      // If an error occurs, retrieve the error message for failed pain area retrieval
+      const errorMessage = errorMessageEs.PAIN_AREAS_RETRIEVAL_FAILED;
+      // Return the error message with a status code of 404 Not Found
+      res.status(errorMessage.statusCode).send({
+        success: false,
+        message: errorMessage.message,
+        error: err.message
+      });
     }
   } else if (req.params.countryCode === "en") {
     try {
-      // find all pain areas where isLive is true
+      // Attempt to retrieve live pain areas, excluding the `nameEs` field
       const livePainAreas = await PainArea.find({ isLive: true }, { nameEs: 0 });
+      // Return the live pain areas with a status code of 200 OK
       res.status(200).send(livePainAreas);
     } catch (err) {
-      res.status(404).send(err);
+      // If an error occurs, retrieve the error message for failed pain area retrieval
+      const errorMessage = errorMessageEn.PAIN_AREAS_RETRIEVAL_FAILED;
+      // Return the error message with a status code of 404 Not Found
+      res.status(errorMessage.statusCode).send({
+        success: false,
+        message: errorMessage.message,
+        error: err.message
+      });
     }
-  }else{
-    res.status(400).json({ success: `"${req.params.countryCode}" this countryCode is not available` });
+  } else {
+    // If the country code is not "es" or "en", retrieve the error message for invalid country code
+    const errorMessage = errorMessageEs.INVALID_COUNTRY_CODE;
+    // Return the error message with a status code of 400 Bad Request
+    res.status(errorMessage.statusCode).send({
+      success: false,
+      message: `${errorMessage.message}: "${req.params.countryCode}"`
+    });
   }
-
 });
 
 // Route to get a pain area by id
