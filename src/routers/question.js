@@ -13,12 +13,25 @@ router.post("/question", async (req, res) => {
   }
 });
 //get all questions from the MonogoDB
-router.get("/questions", async (req, res) => {
-  try {
-    const getQuestion = await question.find();
-    res.status(200).send(getQuestion);
-  } catch (err) {
-    res.status(404).send(err);
+router.get("/questions/:countryCode", async (req, res) => {
+  if (req.params.countryCode === "es") {
+    try {
+      const getQuestion = await question.find({}, { question: 0 });
+      res.status(200).send(getQuestion);
+    } catch (err) {
+      res.status(404).send(err);
+    }
+  }
+  else if (req.params.countryCode === "en") {
+    try {
+      const getQuestion = await question.find({}, { questionEs: 0 });
+      res.status(200).send(getQuestion);
+    } catch (err) {
+      res.status(404).send(err);
+    }
+  }
+  else{
+    res.status(400).json({ success: `"${req.params.countryCode}" this countryCode is not available` });
   }
 });
 //get question by Id

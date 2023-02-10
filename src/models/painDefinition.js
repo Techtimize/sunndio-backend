@@ -12,6 +12,11 @@ const painDefinitionSchema = new mongoose.Schema({
     painAreaId : {
         type : mongoose.Schema.Types.ObjectId,
         ref : 'PainArea'
+    },
+    nameEs : {
+        type : String,
+        required : true,
+        unique : true
     }
 });
 

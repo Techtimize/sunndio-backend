@@ -6,6 +6,11 @@ const diagnosticSchema = new mongoose.Schema({
         type : String,
         required : true,
         unique : true
+    },
+    diagnosisNameEs : {
+        type : String,
+        required : true,
+        unique : true
     }
 });
 

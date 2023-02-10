@@ -17,25 +17,51 @@ router.post("/painarea", async (req, res) => {
 });
 
 // Route to get all live pain areas
-router.get("/painareas", async (req, res) => {
-  try {
-    // find all pain areas where isLive is true
-    const livePainAreas = await PainArea.find({ isLive: true });
-    res.status(200).send(livePainAreas);
-  } catch (err) {
-    res.status(404).send(err);
+router.get("/painareas/:countryCode", async (req, res) => {
+
+  if (req.params.countryCode === "es") {
+    try {
+      // find all pain areas where isLive is true
+      const livePainAreas = await PainArea.find({ isLive: true }, { name: 0 });
+      res.status(200).send(livePainAreas);
+    } catch (err) {
+      res.status(404).send(err);
+    }
+  } else if (req.params.countryCode === "en") {
+    try {
+      // find all pain areas where isLive is true
+      const livePainAreas = await PainArea.find({ isLive: true }, { nameEs: 0 });
+      res.status(200).send(livePainAreas);
+    } catch (err) {
+      res.status(404).send(err);
+    }
+  }else{
+    res.status(400).json({ success: `"${req.params.countryCode}" this countryCode is not available` });
   }
+
 });
 
 // Route to get a pain area by id
-router.get("/painarea/:painAreaId", async (req, res) => {
-  try {
-    // get the id from the request parameters and find the pain area by id
-    const painArea = await PainArea.findById(req.params.painAreaId);
-    // if the pain area is not found, return a 404 error
-    !painArea ? res.status(404).send() : res.status(200).send(painArea);
-  } catch (err) {
-    res.status(404).send(err);
+router.get("/painarea/:countryCode/:painAreaId", async (req, res) => {
+  if (req.params.countryCode === "es") {
+    try {
+      // get the id from the request parameters and find the pain area by id
+      const painArea = await PainArea.findById(req.params.painAreaId, { name: 0 });
+      // if the pain area is not found, return a 404 error
+      !painArea ? res.status(404).send() : res.status(200).send(painArea);
+    } catch (err) {
+      res.status(404).send(err);
+    }
+  }
+  else if (req.params.countryCode === "en") {
+    try {
+      // get the id from the request parameters and find the pain area by id
+      const painArea = await PainArea.findById(req.params.painAreaId, { nameEs: 0 });
+      // if the pain area is not found, return a 404 error
+      !painArea ? res.status(404).send() : res.status(200).send(painArea);
+    } catch (err) {
+      res.status(404).send(err);
+    }
   }
 });
 

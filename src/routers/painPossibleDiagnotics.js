@@ -13,13 +13,39 @@ const possibleDiagnosis = (painBehaviorId) => {
   return getPainPossibleDiag;
 }
 
-router.get("/painPossibleDiagBypainBehaviorId/:painBehaviorId", async (req, res) => {
-  try {
-    const populatDiagnosis = await possibleDiagnosis(req.params.painBehaviorId);
-    const dignosis = populatDiagnosis.map((_diagnosis) => _diagnosis.diagnosticsId);
-    res.status(200).send(dignosis);
-  } catch (err) {
-    res.status(404).send(err);
+router.get("/painPossibleDiagBypainBehaviorId/:countryCode/:painBehaviorId", async (req, res) => {
+  if (req.params.countryCode === "es") {
+    try {
+      const populatDiagnosis = await possibleDiagnosis(req.params.painBehaviorId);
+
+      const dignosis = populatDiagnosis.map((_diagnosis) => _diagnosis.diagnosticsId);
+      const diagnosisEs = dignosis.map(item => ({
+        _id: item._id,
+        diagnosisNameEs: item.diagnosisNameEs,
+        __v: item.__v
+      }));
+      res.status(200).send(diagnosisEs);
+    } catch (err) {
+      res.status(404).send(err);
+    }
+  }
+  else if (req.params.countryCode === "en") {
+    try {
+      const populatDiagnosis = await possibleDiagnosis(req.params.painBehaviorId);
+
+      const dignosis = populatDiagnosis.map((_diagnosis) => _diagnosis.diagnosticsId);
+      const diagnosisEs = dignosis.map(item => ({
+        _id: item._id,
+        diagnosisName: item.diagnosisName,
+        __v: item.__v
+      }));
+      res.status(200).send(diagnosisEs);
+    } catch (err) {
+      res.status(404).send(err);
+    }
+  }
+  else{
+    res.status(400).json({ success: `"${req.params.countryCode}" this countryCode is not available` });
   }
 }
 );
