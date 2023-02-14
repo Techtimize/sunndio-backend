@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const PainArea = require("../models/painArea");
+const CountryCode = require("../enums/countryCodeEnum");
 
 // Route to create a new pain area
 router.post("/painarea", async (req, res) => {
@@ -19,7 +20,7 @@ router.post("/painarea", async (req, res) => {
 // Route to get all live pain areas
 router.get("/painareas/:countryCode", async (req, res) => {
 
-  if (req.params.countryCode === "es") {
+  if (req.params.countryCode === CountryCode.SPANISH) {
     try {
       // find all pain areas where isLive is true
       const livePainAreas = await PainArea.find({ isLive: true }, { name: 0 });
@@ -27,7 +28,7 @@ router.get("/painareas/:countryCode", async (req, res) => {
     } catch (err) {
       res.status(404).send(err);
     }
-  } else if (req.params.countryCode === "en") {
+  } else if (req.params.countryCode === CountryCode.ENGLISH) {
     try {
       // find all pain areas where isLive is true
       const livePainAreas = await PainArea.find({ isLive: true }, { nameEs: 0 });
@@ -43,7 +44,7 @@ router.get("/painareas/:countryCode", async (req, res) => {
 
 // Route to get a pain area by id
 router.get("/painarea/:countryCode/:painAreaId", async (req, res) => {
-  if (req.params.countryCode === "es") {
+  if (req.params.countryCode === CountryCode.SPANISH) {
     try {
       // get the id from the request parameters and find the pain area by id
       const painArea = await PainArea.findById(req.params.painAreaId, { name: 0 });
@@ -53,7 +54,7 @@ router.get("/painarea/:countryCode/:painAreaId", async (req, res) => {
       res.status(404).send(err);
     }
   }
-  else if (req.params.countryCode === "en") {
+  else if (req.params.countryCode === CountryCode.ENGLISH) {
     try {
       // get the id from the request parameters and find the pain area by id
       const painArea = await PainArea.findById(req.params.painAreaId, { nameEs: 0 });

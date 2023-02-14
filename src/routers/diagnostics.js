@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const Diagnostic = require("../models/diagnostics");
+const CountryCode = require("../enums/countryCodeEnum");
+
 
 // insert diagnostic data into the MongoDB
 router.post("/diagnostic", async (req, res) => {
@@ -19,10 +21,10 @@ router.post("/diagnostic", async (req, res) => {
 
 // Get all the diagnostics from the database
 router.get("/diagnostic/:countryCode", async (req, res) => {
-  if (req.params.countryCode === "es") {
+  if (req.params.countryCode === CountryCode.SPANISH) {
     try {
       // Retrieve all the diagnostics from the database
-      const getDiagnostic = await Diagnostic.find({}, { diagnosisNameEs: 0 });
+      const getDiagnostic = await Diagnostic.find({}, { diagnosisName: 0 });
       // Respond with a status code of 200 and the retrieved data
       res.status(200).send(getDiagnostic);
     } catch (err) {
@@ -30,10 +32,10 @@ router.get("/diagnostic/:countryCode", async (req, res) => {
       res.status(404).send(err);
     }
   }
-  else if (req.params.countryCode === "en") {
+  else if (req.params.countryCode === CountryCode.ENGLISH) {
     try {
       // Retrieve all the diagnostics from the database
-      const getDiagnostic = await Diagnostic.find({}, { diagnosisName: 0 });
+      const getDiagnostic = await Diagnostic.find({}, { diagnosisNameEs: 0 });
       // Respond with a status code of 200 and the retrieved data
       res.status(200).send(getDiagnostic);
     } catch (err) {

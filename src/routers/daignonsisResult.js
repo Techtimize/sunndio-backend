@@ -6,6 +6,7 @@ const Probability = require("../models/probability");
 const AssignResult = require("../models/assignResult");
 const PainPossibleDiag = require("../models/painPossibleDiagnostics");
 const PainBehaviorQuestion = require("../models/painBehaviorQuestion");
+const CountryCode = require("../enums/countryCodeEnum");
 
 // Function to retrieve the probability for a given pain behavior ID
 const getProbabilityByPainBehaviorId = (request) => {
@@ -90,24 +91,24 @@ router.get("/calculateDiagnotics/:countryCode", async (req, res) => {
       }
       // Round the percentage to the nearest whole number and add it to the resultPercentage array
       let percentage = Math.round(per + probability);
+      let obj = {}
       per = 0;
-      if (req.params.countryCode == "es") {
-        let obj = {
+      if (req.params.countryCode == CountryCode.SPANISH) {
+        obj = {
           possibleDiagnostic: populateDiagnosis[i].diagnosticsId.diagnosisNameEs,
           percentage: percentage
         };
-        resultPercentage.push(obj);
       }
-      else if (req.params.countryCode == "en") {
-        let obj = {
+      else if (req.params.countryCode == CountryCode.ENGLISH) {
+        obj = {
           possibleDiagnostic: populateDiagnosis[i].diagnosticsId.diagnosisName,
           percentage: percentage
         };
-        resultPercentage.push(obj);
       }
-      else{
+      else {
         res.status(400).json({ success: `"${req.params.countryCode}" this countryCode is not available` });
       }
+      resultPercentage.push(obj);
     }
     // Send the resultPercentage array as a response with a status code of 200 (OK)
     res.status(200).send(resultPercentage);

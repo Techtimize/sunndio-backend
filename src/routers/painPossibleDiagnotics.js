@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const painPossibleDiag = require("../models/painPossibleDiagnostics");
+const CountryCode = require("../enums/countryCodeEnum");
+
 
 const possibleDiagnosis = (painBehaviorId) => {
   const getPainPossibleDiag = painPossibleDiag.find({
@@ -14,41 +16,32 @@ const possibleDiagnosis = (painBehaviorId) => {
 }
 
 router.get("/painPossibleDiagBypainBehaviorId/:countryCode/:painBehaviorId", async (req, res) => {
-  if (req.params.countryCode === "es") {
-    try {
-      const populatDiagnosis = await possibleDiagnosis(req.params.painBehaviorId);
+  try {
+    const populatDiagnosis = await possibleDiagnosis(req.params.painBehaviorId);
+    const dignosis = populatDiagnosis.map((_diagnosis) => _diagnosis.diagnosticsId);
 
-      const dignosis = populatDiagnosis.map((_diagnosis) => _diagnosis.diagnosticsId);
+    if (req.params.countryCode === CountryCode.SPANISH) {
       const diagnosisEs = dignosis.map(item => ({
         _id: item._id,
         diagnosisNameEs: item.diagnosisNameEs,
         __v: item.__v
       }));
       res.status(200).send(diagnosisEs);
-    } catch (err) {
-      res.status(404).send(err);
-    }
-  }
-  else if (req.params.countryCode === "en") {
-    try {
-      const populatDiagnosis = await possibleDiagnosis(req.params.painBehaviorId);
-
-      const dignosis = populatDiagnosis.map((_diagnosis) => _diagnosis.diagnosticsId);
+    } else if (req.params.countryCode === CountryCode.ENGLISH) {
       const diagnosisEs = dignosis.map(item => ({
         _id: item._id,
         diagnosisName: item.diagnosisName,
         __v: item.__v
       }));
       res.status(200).send(diagnosisEs);
-    } catch (err) {
-      res.status(404).send(err);
+    } else {
+      res.status(400).json({ success: `"${req.params.countryCode}" this countryCode is not available` });
     }
+  } catch (err) {
+    res.status(404).send(err);
   }
-  else{
-    res.status(400).json({ success: `"${req.params.countryCode}" this countryCode is not available` });
-  }
-}
-);
+});
+
 router.get("/painPossibleDiag", async (req, res) => {
   try {
     const getPainPossibleDiag = await painPossibleDiag.find();

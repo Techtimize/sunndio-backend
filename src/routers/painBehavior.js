@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const painBehaviorModel = require("../models/painBehavior");
+const CountryCode = require("../enums/countryCodeEnum");
+
 
 // Route to insert pain behavior data into MongoDB
 router.post("/painbehavior", async (req, res) => {
@@ -21,7 +23,7 @@ router.post("/painbehavior", async (req, res) => {
 router.get(
   "/painBehaviorsByPainDefinition/:countryCode/:painDefinitionId",
   async (req, res) => {
-    if (req.params.countryCode === "es") {
+    if (req.params.countryCode === CountryCode.SPANISH) {
       try {
         // Finding the pain behaviors by pain definition id
         const foundPainBehaviors = await painBehaviorModel.find(
@@ -35,7 +37,7 @@ router.get(
         res.status(404).send(error);
       }
     }
-    else if (req.params.countryCode === "en") {
+    else if (req.params.countryCode === CountryCode.ENGLISH) {
       try {
         // Finding the pain behaviors by pain definition id
         const foundPainBehaviors = await painBehaviorModel.find(
@@ -56,7 +58,7 @@ router.get(
 
 // Route to get all pain behaviors from MongoDB
 router.get("/painBehaviors/:countryCode", async (req, res) => {
-  if (req.params.countryCode === "es") {
+  if (req.params.countryCode === CountryCode.SPANISH) {
     try {
       // Finding all the pain behaviors in the database
       const foundPainBehaviors = await painBehaviorModel.find({}, { name: 0 });
@@ -67,7 +69,7 @@ router.get("/painBehaviors/:countryCode", async (req, res) => {
       res.status(404).send(error);
     }
   }
-  else if (req.params.countryCode === "en") {
+  else if (req.params.countryCode === CountryCode.ENGLISH) {
     try {
       // Finding all the pain behaviors in the database
       const foundPainBehaviors = await painBehaviorModel.find({}, { nameEs: 0 });

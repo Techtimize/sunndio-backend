@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const paindefinition = require("../models/painDefinition");
+const CountryCode = require("../enums/countryCodeEnum");
+
 
 // insert the painDefinition data in to MonogoDB
 router.post("/painDefinition", async (req, res) => {
@@ -14,14 +16,14 @@ router.post("/painDefinition", async (req, res) => {
 });
 // get the painDefinitions By PainAreaId
 router.get("/painDefinitionsByPainAreaId/:countryCode/:painAreaId", async (req, res) => {
-    if (req.params.countryCode === "es") {
+    if (req.params.countryCode === CountryCode.SPANISH) {
         try {
             const getPaindefinition = await paindefinition.find({ painAreaId: req.params.painAreaId }, { painAreaId: 0, name: 0 });
             res.status(200).send(getPaindefinition);
         } catch (err) {
             res.status(404).send(err);
         }
-    } else if (req.params.countryCode === "en") {
+    } else if (req.params.countryCode === CountryCode.ENGLISH) {
         try {
             const getPaindefinition = await paindefinition.find({ painAreaId: req.params.painAreaId }, { painAreaId: 0, nameEs: 0 });
             res.status(200).send(getPaindefinition);
@@ -35,7 +37,7 @@ router.get("/painDefinitionsByPainAreaId/:countryCode/:painAreaId", async (req, 
 });
 // get all the painDefinition data
 router.get("/painDefinitions/:countryCode", async (req, res) => {
-    if (req.params.countryCode === "es") {
+    if (req.params.countryCode === CountryCode.SPANISH) {
         try {
             const getPaindefinition = await paindefinition.find({}, { name: 0 });
             res.status(200).send(getPaindefinition);
@@ -43,7 +45,7 @@ router.get("/painDefinitions/:countryCode", async (req, res) => {
             res.status(404).send(err);
         }
     }
-    else if (req.params.countryCode === "en") {
+    else if (req.params.countryCode === CountryCode.ENGLISH) {
         try {
             const getPaindefinition = await paindefinition.find({}, { nameEs: 0 });
             res.status(200).send(getPaindefinition);

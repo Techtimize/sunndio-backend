@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const question = require("../models/question");
+const CountryCode = require("../enums/countryCodeEnum");
+
 
 // insert questions into the to MonogoDB
 router.post("/question", async (req, res) => {
@@ -14,7 +16,7 @@ router.post("/question", async (req, res) => {
 });
 //get all questions from the MonogoDB
 router.get("/questions/:countryCode", async (req, res) => {
-  if (req.params.countryCode === "es") {
+  if (req.params.countryCode === CountryCode.SPANISH) {
     try {
       const getQuestion = await question.find({}, { question: 0 });
       res.status(200).send(getQuestion);
@@ -22,7 +24,7 @@ router.get("/questions/:countryCode", async (req, res) => {
       res.status(404).send(err);
     }
   }
-  else if (req.params.countryCode === "en") {
+  else if (req.params.countryCode === CountryCode.ENGLISH) {
     try {
       const getQuestion = await question.find({}, { questionEs: 0 });
       res.status(200).send(getQuestion);
