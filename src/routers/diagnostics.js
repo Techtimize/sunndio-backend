@@ -21,30 +21,23 @@ router.post("/diagnostic", async (req, res) => {
 
 // Get all the diagnostics from the database
 router.get("/diagnostic/:countryCode", async (req, res) => {
-  if (req.params.countryCode === CountryCode.SPANISH) {
-    try {
+  try {
+    var getDiagnostic;
+    if (req.params.countryCode === CountryCode.SPANISH) {
       // Retrieve all the diagnostics from the database
-      const getDiagnostic = await Diagnostic.find({}, { diagnosisName: 0 });
-      // Respond with a status code of 200 and the retrieved data
-      res.status(200).send(getDiagnostic);
-    } catch (err) {
-      // Respond with a status code of 404 and the error message if there was an issue retrieving the data
-      res.status(404).send(err);
-    }
-  }
-  else if (req.params.countryCode === CountryCode.ENGLISH) {
-    try {
+      getDiagnostic = await Diagnostic.find({}, { diagnosisName: 0 });
+    } else if (req.params.countryCode === CountryCode.ENGLISH) {
       // Retrieve all the diagnostics from the database
-      const getDiagnostic = await Diagnostic.find({}, { diagnosisNameEs: 0 });
-      // Respond with a status code of 200 and the retrieved data
-      res.status(200).send(getDiagnostic);
-    } catch (err) {
-      // Respond with a status code of 404 and the error message if there was an issue retrieving the data
-      res.status(404).send(err);
+      getDiagnostic = await Diagnostic.find({}, { diagnosisNameEs: 0 });
+    } else {
+      res.status(400).json({ success: `\"${req.params.countryCode}\" this countryCode is not available` });
     }
+    // Respond with a status code of 200 and the retrieved data
+    res.status(200).send(getDiagnostic);
   }
-  else{
-    res.status(400).json({ success: `"${req.params.countryCode}" this countryCode is not available` });
+  catch (err) {
+    // Respond with a status code of 404 and the error message if there was an issue retrieving the data
+    res.status(500).send(err);
   }
 });
 

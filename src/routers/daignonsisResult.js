@@ -91,16 +91,16 @@ router.get("/calculateDiagnotics/:countryCode", async (req, res) => {
       }
       // Round the percentage to the nearest whole number and add it to the resultPercentage array
       let percentage = Math.round(per + probability);
-      let obj = {}
+      let diagnosisObj = {}
       per = 0;
       if (req.params.countryCode == CountryCode.SPANISH) {
-        obj = {
+        diagnosisObj = {
           possibleDiagnostic: populateDiagnosis[i].diagnosticsId.diagnosisNameEs,
           percentage: percentage
         };
       }
       else if (req.params.countryCode == CountryCode.ENGLISH) {
-        obj = {
+        diagnosisObj = {
           possibleDiagnostic: populateDiagnosis[i].diagnosticsId.diagnosisName,
           percentage: percentage
         };
@@ -108,13 +108,13 @@ router.get("/calculateDiagnotics/:countryCode", async (req, res) => {
       else {
         res.status(400).json({ success: `"${req.params.countryCode}" this countryCode is not available` });
       }
-      resultPercentage.push(obj);
+      resultPercentage.push(diagnosisObj);
     }
     // Send the resultPercentage array as a response with a status code of 200 (OK)
     res.status(200).send(resultPercentage);
   } catch (err) {
-    // Respond with a status code of 404 and the error message if there was an issue retrieving the data
-    res.status(404).send(err);
+    // Respond with a status code of 500 and the error message if there was an issue retrieving the data
+    res.status(500).send(err);
   }
 });
 

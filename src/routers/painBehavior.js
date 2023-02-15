@@ -20,68 +20,62 @@ router.post("/painbehavior", async (req, res) => {
 });
 
 // Route to get pain behaviors by pain definition id
-router.get(
-  "/painBehaviorsByPainDefinition/:countryCode/:painDefinitionId",
-  async (req, res) => {
+router.get("/painBehaviorsByPainDefinition/:countryCode/:painDefinitionId", async (req, res) => {
+  try {
+    var foundPainBehaviors;
+    // Check the provided country code to return pain behaviors in the appropriate language
     if (req.params.countryCode === CountryCode.SPANISH) {
-      try {
-        // Finding the pain behaviors by pain definition id
-        const foundPainBehaviors = await painBehaviorModel.find(
-          { painDefinitionId: req.params.painDefinitionId },
-          { painDefinitionId: 0, name: 0 }
-        );
-        // Sending a 200 (OK) status and the found pain behaviors data as response
-        res.status(200).send(foundPainBehaviors);
-      } catch (error) {
-        // Sending a 404 (Not Found) status and the error message as response
-        res.status(404).send(error);
-      }
+      foundPainBehaviors = await painBehaviorModel.find(
+        { painDefinitionId: req.params.painDefinitionId },
+        // Return all fields except for painDefinitionId and name in English
+        { painDefinitionId: 0, name: 0 }
+      );
     }
     else if (req.params.countryCode === CountryCode.ENGLISH) {
-      try {
-        // Finding the pain behaviors by pain definition id
-        const foundPainBehaviors = await painBehaviorModel.find(
-          { painDefinitionId: req.params.painDefinitionId },
-          { painDefinitionId: 0, nameEs: 0 }
-        );
-        // Sending a 200 (OK) status and the found pain behaviors data as response
-        res.status(200).send(foundPainBehaviors);
-      } catch (error) {
-        // Sending a 404 (Not Found) status and the error message as response
-        res.status(404).send(error);
-      }
+      foundPainBehaviors = await painBehaviorModel.find(
+        { painDefinitionId: req.params.painDefinitionId },
+        // Return all fields except for painDefinitionId and name in Spanish 
+        { painDefinitionId: 0, nameEs: 0 }
+      );
     }
-    else{
-      res.status(400).json({ success: `"${req.params.countryCode}" this countryCode is not available` });
+    else {
+      // If the provided country code is not valid, return an error message
+      res.status(400).json({ success: `${req.params.countryCode} this countryCode is not available `});
     }
-  });
+    // Return the found pain behaviors
+    res.status(200).send(foundPainBehaviors);
+  } catch (error) {
+    // Return a server error if something went wrong while fetching the data
+    res.status(500).send(error);
+  }
+});
 
 // Route to get all pain behaviors from MongoDB
 router.get("/painBehaviors/:countryCode", async (req, res) => {
-  if (req.params.countryCode === CountryCode.SPANISH) {
-    try {
-      // Finding all the pain behaviors in the database
-      const foundPainBehaviors = await painBehaviorModel.find({}, { name: 0 });
-      // Sending a 200 (OK) status and the found pain behaviors data as response
-      res.status(200).send(foundPainBehaviors);
-    } catch (error) {
-      // Sending a 404 (Not Found) status and the error message as response
-      res.status(404).send(error);
+  try {
+    var foundPainBehaviors;
+    // Check the provided country code to return pain behaviors in the appropriate language
+    if (req.params.countryCode === CountryCode.SPANISH) {
+      foundPainBehaviors = await painBehaviorModel.find(
+        // Return all pain behaviors, except for the name in Spanish
+        {}, { name: 0 }
+      );
     }
-  }
-  else if (req.params.countryCode === CountryCode.ENGLISH) {
-    try {
-      // Finding all the pain behaviors in the database
-      const foundPainBehaviors = await painBehaviorModel.find({}, { nameEs: 0 });
-      // Sending a 200 (OK) status and the found pain behaviors data as response
-      res.status(200).send(foundPainBehaviors);
-    } catch (error) {
-      // Sending a 404 (Not Found) status and the error message as response
-      res.status(404).send(error);
+    else if (req.params.countryCode === CountryCode.ENGLISH) {
+      foundPainBehaviors = await painBehaviorModel.find(
+        // Return all pain behaviors, except for the name in English
+        {}, { nameEs: 0 }
+      );
+    } else {
+      // If the provided country code is not valid, return an error message
+      res.status(400).json({ success: `${req.params.countryCode} this countryCode is not available `});
     }
+    // Return the found pain behaviors
+    res.status(200).send(foundPainBehaviors);
   }
-  else{
-    res.status(400).json({ success: `"${req.params.countryCode}" this countryCode is not available` });
+  catch (err) {
+    // Return a server error if something went wrong while fetching the data
+    res.status(404).send(err);
   }
 });
 

@@ -1,47 +1,54 @@
+// Importing express and setting up the router
 const express = require("express");
 const router = express.Router();
+
+// Importing the painBehaviorQuestion model and the CountryCode enum
 const painBehaviorQuestion = require("../models/painBehaviorQuestion");
 const CountryCode = require("../enums/countryCodeEnum");
 
-
-// get the question form the MongoDB by painBehaviorId
+// Route to get questions by pain behavior ID and country code
 router.get("/questionsByPainBehavior/:countryCode/:painBehaviorId", async (req, res) => {
   try {
-    // get the questionsIDs from the bridge using papulate method 
-    const questionIDs = await painBehaviorQuestion
-      .find(
-        {
-          painBehaviorId: req.params.painBehaviorId,
-        },
-        {
-          painBehaviorId: 0,
-          _id: 0,
-        }
-      )
-      .populate("questionId");
-    // get the questions using map mathod from the papulated array
-    const questions = questionIDs.map((_question) => _question.questionId);
+    // Query the painBehaviorQuestion model for all question IDs associated with the specified pain behavior ID
+    // and populate the actual question document for each ID
+    const questionIDs = await painBehaviorQuestion.find({
+      painBehaviorId: req.params.painBehaviorId,
+    }, {
+      painBehaviorId: 0,
+      _id: 0,
+    }).populate("questionId");
+    // Extract the populated question documents from the query result
+    const mappedQuestions = questionIDs.map((_question) => _question.questionId);
+    var question;
     if (req.params.countryCode === CountryCode.SPANISH) {
-      const questionEs = questions.map(item => ({
+      // Map the questions to a new array with only the Spanish version of the question
+      question = mappedQuestions.map(item => ({
         _id: item._id,
         questionEs: item.questionEs,
         __v: item.__v
       }));
-      res.status(200).send(questionEs);
     }
     else if (req.params.countryCode === CountryCode.ENGLISH) {
-      const questionEn = questions.map(item => ({
+      // Map the questions to a new array with only the English version of the question
+      question = mappedQuestions.map(item => ({
         _id: item._id,
         question: item.question,
         __v: item.__v
       }));
-      res.status(200).send(questionEn);
     } else {
-      res.status(400).json({ success: `"${req.params.countryCode}" this countryCode is not available` });
+      // If an invalid country code is specified, return an error response
+      res.status(400).json({ success: `${req.params.countryCode} this countryCode is not available ` });
     }
+    // Return the resulting array of questions
+    res.status(200).send(question);
   } catch (err) {
+    // If an error occurs, return a 404 error response
     res.status(404).send(err);
   }
 });
 
+// Export the router for use in the main application
 module.exports = router;
+
+
+
