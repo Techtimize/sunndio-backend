@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const question = require("../models/question");
+const CountryCode = require("../enums/countryCodeEnum");
+
 
 // insert questions into the to MonogoDB
 router.post("/question", async (req, res) => {
@@ -13,11 +15,20 @@ router.post("/question", async (req, res) => {
   }
 });
 //get all questions from the MonogoDB
-router.get("/questions", async (req, res) => {
+router.get("/questions/:countryCode", async (req, res) => {
   try {
-    const getQuestion = await question.find();
+    var getQuestion;
+    if (req.params.countryCode === CountryCode.SPANISH) {
+      getQuestion = await question.find({}, { question: 0 });
+    } else if (req.params.countryCode === CountryCode.ENGLISH) {
+      getQuestion = await question.find({}, { questionEs: 0 });
+    }
+    else {
+      res.status(400).json({ success: `"${req.params.countryCode}" this countryCode is not available` });
+    }
     res.status(200).send(getQuestion);
-  } catch (err) {
+  }
+  catch (err) {
     res.status(404).send(err);
   }
 });

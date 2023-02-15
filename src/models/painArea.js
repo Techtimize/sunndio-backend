@@ -11,6 +11,11 @@ const painAreaSchema = new mongoose.Schema({
     // Define the isLive field with type Boolean
     isLive : {
         type : Boolean
+    },
+    nameEs : {
+        type : String,
+        required : true,
+        unique : true
     }
 });
 
