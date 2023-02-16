@@ -15,48 +15,59 @@ const getProbabilityByPainBehaviorId = (request) => {
   // Find the probability based on the painBehaviorId
   const prob = Probability.find({ painBehaviorId: request.painBehaviorId });
   return prob;
-}
+};
 
 // Function to retrieve the assign result for a given pain behavior ID and question answer
 const getAssignResultByPainBehaviorId = (request, question, index) => {
   let painBehQuesId = "";
   for (i = 0; i < question.length; i++) {
-    if (JSON.stringify(question[i].questionId._id) === JSON.stringify(request.questionAnswer[index].questionId)) {
+    if (
+      JSON.stringify(question[i].questionId._id) ===
+      JSON.stringify(request.questionAnswer[index].questionId)
+    ) {
       painBehQuesId = question[i]._id;
       break;
     }
   }
   // Find the result based on the painBehaviorId, DiagAnswer and painBehaviorQuestionId
-  const result = AssignResult.find({
-    painBehaviorId: request.painBehaviorId,
-    DiagAnswer: request.questionAnswer[index].isYes,
-    painBehaviorQuestionId: painBehQuesId
-  }, {
-    Percentage: 1,
-    possibleDiagnosticId: 1
-  });
+  const result = AssignResult.find(
+    {
+      painBehaviorId: request.painBehaviorId,
+      DiagAnswer: request.questionAnswer[index].isYes,
+      painBehaviorQuestionId: painBehQuesId,
+    },
+    {
+      Percentage: 1,
+      possibleDiagnosticId: 1,
+    }
+  );
   return result;
-}
+};
 
 // Function to retrieve the possible diagnoses for a given pain behavior ID
 const possibleDiagnosis = (request) => {
   // Find the possible diagnosis based on the painBehaviorId and isPossibleDiag
-  const getPainPossibleDiag = PainPossibleDiag.find({
-    painBehaviorId: request.painBehaviorId,
-    isPossibleDiag: true
-  }, {
-    isPossibleDiag: 0,
-    painBehaviorId: 0
-  }).populate("diagnosticsId");
+  const getPainPossibleDiag = PainPossibleDiag.find(
+    {
+      painBehaviorId: request.painBehaviorId,
+      isPossibleDiag: true,
+    },
+    {
+      isPossibleDiag: 0,
+      painBehaviorId: 0,
+    }
+  ).populate("diagnosticsId");
   return getPainPossibleDiag;
-}
+};
 
 // Function to retrieve the pain behavior questions for a given pain behavior ID
 const getPainBehaviorQuestion = (request) => {
   // Find the pain behavior question based on the painBehaviorId
-  const result = PainBehaviorQuestion.find({ painBehaviorId: request.painBehaviorId }).populate("questionId");
+  const result = PainBehaviorQuestion.find({
+    painBehaviorId: request.painBehaviorId,
+  }).populate("questionId");
   return result;
-}
+};
 
 router.get("/calculateDiagnotics/:countryCode", async (req, res) => {
   try {
@@ -75,7 +86,11 @@ router.get("/calculateDiagnotics/:countryCode", async (req, res) => {
     // Loop through the pain behavior questions
     for (i = 0; i < painBehaviorQuestion.length; i++) {
       // For each question, get the assignResult and add it to the assignResult array
-      let data = await getAssignResultByPainBehaviorId(req.body, painBehaviorQuestion, i);
+      let data = await getAssignResultByPainBehaviorId(
+        req.body,
+        painBehaviorQuestion,
+        i
+      );
       assignResult = assignResult.concat(data);
     }
     // Initialize an array to store the result percentages
@@ -87,54 +102,53 @@ router.get("/calculateDiagnotics/:countryCode", async (req, res) => {
       // Loop through the assignResult array
       for (j = 0; j < assignResult.length; j++) {
         // If the possibleDiagnosticId in assignResult matches the ID of the current diagnosis, add the percentage to the per variable
-        if (JSON.stringify(assignResult[j].possibleDiagnosticId) === JSON.stringify(populateDiagnosis[i]._id)) {
+        if (
+          JSON.stringify(assignResult[j].possibleDiagnosticId) ===
+          JSON.stringify(populateDiagnosis[i]._id)
+        ) {
           per = per + assignResult[j].Percentage;
         }
       }
       // Round the percentage to the nearest whole number and add it to the resultPercentage array
       let percentage = Math.round(per + probability);
-      let diagnosisObj = {}
+      let diagnosisObj = {};
       per = 0;
       if (req.params.countryCode == CountryCode.SPANISH) {
         diagnosisObj = {
-          possibleDiagnostic: populateDiagnosis[i].diagnosticsId.diagnosisNameEs,
-          percentage: percentage
+          possibleDiagnostic:
+            populateDiagnosis[i].diagnosticsId.diagnosisNameEs,
+          percentage: percentage,
         };
-      }
-      else if (req.params.countryCode == CountryCode.ENGLISH) {
+      } else if (req.params.countryCode == CountryCode.ENGLISH) {
         diagnosisObj = {
           possibleDiagnostic: populateDiagnosis[i].diagnosticsId.diagnosisName,
-          percentage: percentage
+          percentage: percentage,
         };
-      }
-      else {
-        res.status(400).json({ success: `"${req.params.countryCode}" this countryCode is not available` });
+      } else {
+        // If the country code is not "es" or "en", retrieve the error message for invalid country code
+        const errorMessage = errorMessageEs.INVALID_COUNTRY_CODE;
+        // Return the error message with a status code of 400 Bad Request
+        res.status(errorMessage.statusCode).send({
+          success: false,
+          message: `${errorMessage.message}: "${req.params.countryCode}"`,
+        });
       }
       resultPercentage.push(diagnosisObj);
     }
-    if (req.params.countryCode !== "es" && req.params.countryCode !== "en") {
-      // If the country code is not "es" or "en", retrieve the error message for invalid country code
-      const errorMessage = errorMessageEs.INVALID_COUNTRY_CODE;
-      // Return the error message with a status code of 400 Bad Request
-      res.status(errorMessage.statusCode).send({
-        success: false,
-        message: `${errorMessage.message}: "${req.params.countryCode}"`
-      });
-    }
-    else {
-      // Send the resultPercentage array as a response with a status code of 200 (OK)
-      res.status(200).send(resultPercentage);
-    }
+    // Send the resultPercentage array as a response with a status code of 200 (OK)
+    res.status(200).send(resultPercentage);
   } catch (err) {
     // If an error occurs, retrieve the error message for failed calculate the diagnosis result
-    const errorMessage = req.params.countryCode === "es"
-      ? errorMessageEs.CALCULATE_DIAGNOSIS_RESULT_FAILED
-      : req.params.countryCode === "en" ? errorMessageEn.CALCULATE_DIAGNOSIS_RESULT_FAILED : "";
-    // Return the error message with a status code of 404 Not Found
+    const errorMessage =
+      req.params.countryCode === "es"
+        ? errorMessageEs.INTERNAL_SERVER_ERROR
+        : req.params.countryCode === "en"
+        ? errorMessageEn.INTERNAL_SERVER_ERROR
+        : "";
     res.status(errorMessage.statusCode).send({
       success: false,
       message: errorMessage.message,
-      error: err.message
+      error: err.message,
     });
   }
 });

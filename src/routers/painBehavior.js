@@ -42,13 +42,36 @@ router.get("/painBehaviorsByPainDefinition/:countryCode/:painDefinitionId", asyn
     }
     else {
       // If the provided country code is not valid, return an error message
-      res.status(400).json({ success: `${req.params.countryCode} this countryCode is not available `});
+      const errorMessage = errorMessageEs.INVALID_COUNTRY_CODE;
+      res
+        .status(errorMessage.statusCode)
+        .json({
+          success: `"${req.params.countryCode}" ${errorMessage.message}`,
+        });
     }
     // Return the found pain behaviors
-    res.status(200).send(foundPainBehaviors);
+    const errorMessage =
+      req.params.countryCode === "es"
+        ? errorMessageEs.PAIN_BEHAVIORS_RETRIEVAL_FAILED
+        : req.params.countryCode === "en"
+        ? errorMessageEn.PAIN_BEHAVIORS_RETRIEVAL_FAILED
+        : "";
+    !foundPainBehaviors
+      ? res.status(errorMessage.statusCode).send(errorMessage.message)
+      : res.status(errorMessageEn.OK.statusCode).send(foundPainBehaviors);
   } catch (error) {
     // Return a server error if something went wrong while fetching the data
-    res.status(500).send(error);
+    const errorMessage =
+      req.params.countryCode === "es"
+        ? errorMessageEs.INTERNAL_SERVER_ERROR
+        : req.params.countryCode === "en"
+        ? errorMessageEn.INTERNAL_SERVER_ERROR
+        : "";
+    res.status(errorMessage.statusCode).send({
+      success: false,
+      message: errorMessage.message,
+      error: err.message,
+    });
   }
 });
 
@@ -73,11 +96,29 @@ router.get("/painBehaviors/:countryCode", async (req, res) => {
       res.status(400).json({ success: `${req.params.countryCode} this countryCode is not available `});
     }
     // Return the found pain behaviors
-    res.status(200).send(foundPainBehaviors);
+    const errorMessage =
+      req.params.countryCode === "es"
+        ? errorMessageEs.PAIN_BEHAVIORS_RETRIEVAL_FAILED
+        : req.params.countryCode === "en"
+        ? errorMessageEn.PAIN_BEHAVIORS_RETRIEVAL_FAILED
+        : "";
+    !foundPainBehaviors
+      ? res.status(errorMessage.statusCode).send(errorMessage.message)
+      : res.status(errorMessageEn.OK.statusCode).send(foundPainBehaviors);
   }
   catch (err) {
     // Return a server error if something went wrong while fetching the data
-    res.status(404).send(err);
+    const errorMessage =
+      req.params.countryCode === "es"
+        ? errorMessageEs.INTERNAL_SERVER_ERROR
+        : req.params.countryCode === "en"
+        ? errorMessageEn.INTERNAL_SERVER_ERROR
+        : "";
+    res.status(errorMessage.statusCode).send({
+      success: false,
+      message: errorMessage.message,
+      error: err.message,
+    });
   }
 });
 

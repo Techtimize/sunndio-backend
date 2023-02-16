@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const PainArea = require("../models/painArea");
+const CountryCode = require("../enums/countryCodeEnum");
 const errorMessageEn = require("../Error-Handling/error-handlingEn.json");
 const errorMessageEs = require("../Error-Handling/error-handlingEs.json");
 
@@ -34,13 +35,35 @@ router.get("/painareas/:countryCode", async (req, res) => {
     }
     // If the country code is not recognized, return an error response
     else {
-      res.status(400).json({ success: `"${req.params.countryCode}" this countryCode is not available` });
+      const errorMessage = errorMessageEs.INVALID_COUNTRY_CODE;
+      res
+        .status(errorMessage.statusCode)
+        .json({
+          success: `"${req.params.countryCode}" ${errorMessage.message}`,
+        });
     }
+    const errorMessage =
+      req.params.countryCode === "es"
+        ? errorMessageEs.PAIN_AREAS_RETRIEVAL_FAILED
+        : req.params.countryCode === "en"
+        ? errorMessageEn.PAIN_AREAS_RETRIEVAL_FAILED
+        : "";
     // Check if any live pain areas were found and send a response accordingly
-    !livePainAreas ? res.status(404).send("Not Found") : res.status(200).send(livePainAreas);
+    !livePainAreas
+      ? res.status(errorMessage.statusCode).send(errorMessage.message)
+      : res.status(errorMessageEn.OK.statusCode).send(livePainAreas);
   } catch (err) {
-    // If an error occurs, send a 500 response with the error message
-    res.status(500).send(err);
+    const errorMessage =
+      req.params.countryCode === "es"
+        ? errorMessageEs.INTERNAL_SERVER_ERROR
+        : req.params.countryCode === "en"
+        ? errorMessageEn.INTERNAL_SERVER_ERROR
+        : "";
+    res.status(errorMessage.statusCode).send({
+      success: false,
+      message: errorMessage.message,
+      error: err.message,
+    });
   }
 });
 
@@ -60,14 +83,37 @@ router.get("/painarea/:countryCode/:painAreaId", async (req, res) => {
     }
     // If the country code is not recognized, return an error response
     else {
-      res.status(400).json({ success: `"${req.params.countryCode}" this countryCode is not available` });
+      const errorMessage = errorMessageEs.INVALID_COUNTRY_CODE;
+      res
+        .status(errorMessage.statusCode)
+        .json({
+          success: `"${req.params.countryCode}" ${errorMessage.message}`,
+        });
     }
     // Check if the pain area was found and send a response accordingly
-    !painArea ? res.status(404).send("Not Found") : res.status(200).send(painArea);
-  }
-  catch (err) {
+    const errorMessage =
+      req.params.countryCode === "es"
+        ? errorMessageEs.PAIN_AREAS_RETRIEVAL_FAILED
+        : req.params.countryCode === "en"
+        ? errorMessageEn.PAIN_AREAS_RETRIEVAL_FAILED
+        : "";
+    // Check if any live pain areas were found and send a response accordingly
+    !painArea
+      ? res.status(errorMessage.statusCode).send(errorMessage.message)
+      : res.status(errorMessageEn.OK.statusCode).send(painArea);
+  } catch (err) {
     // If an error occurs, send a 500 response with the error message
-    res.status(500).send(err);
+    const errorMessage =
+      req.params.countryCode === "es"
+        ? errorMessageEs.INTERNAL_SERVER_ERROR
+        : req.params.countryCode === "en"
+        ? errorMessageEn.INTERNAL_SERVER_ERROR
+        : "";
+    res.status(errorMessage.statusCode).send({
+      success: false,
+      message: errorMessage.message,
+      error: err.message,
+    });
   }
 });
 

@@ -24,12 +24,27 @@ router.get("/questions/:countryCode", async (req, res) => {
       getQuestion = await question.find({}, { questionEs: 0 });
     }
     else {
-      res.status(400).json({ success: `"${req.params.countryCode}" this countryCode is not available` });
+      const errorMessage = errorMessageEs.INVALID_COUNTRY_CODE;
+      res
+        .status(errorMessage.statusCode)
+        .json({
+          success: `"${req.params.countryCode}" ${errorMessage.message}`,
+        });
     }
     res.status(200).send(getQuestion);
   }
   catch (err) {
-    res.status(404).send(err);
+    const errorMessage =
+      req.params.countryCode === "es"
+        ? errorMessageEs.INTERNAL_SERVER_ERROR
+        : req.params.countryCode === "en"
+        ? errorMessageEn.INTERNAL_SERVER_ERROR
+        : "";
+    res.status(errorMessage.statusCode).send({
+      success: false,
+      message: errorMessage.message,
+      error: err.message,
+    });
   }
 });
 //get question by Id

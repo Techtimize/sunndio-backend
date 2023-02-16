@@ -39,13 +39,37 @@ router.get("/questionsByPainBehavior/:countryCode/:painBehaviorId", async (req, 
       }));
     } else {
       // If an invalid country code is specified, return an error response
-      res.status(400).json({ success: `${req.params.countryCode} this countryCode is not available ` });
+      const errorMessage = errorMessageEs.INVALID_COUNTRY_CODE;
+      res
+        .status(errorMessage.statusCode)
+        .json({
+          success: `"${req.params.countryCode}" ${errorMessage.message}`,
+        });
     }
     // Return the resulting array of questions
-    res.status(200).send(question);
+    const errorMessage =
+      req.params.countryCode === "es"
+        ? errorMessageEs.QUESTION_BY_PAIN_BEHAVIORS_RETRIEVAL_FAILED
+        : req.params.countryCode === "en"
+        ? errorMessageEn.QUESTION_BY_PAIN_BEHAVIORS_RETRIEVAL_FAILED
+        : "";
+    // Check if any live pain areas were found and send a response accordingly
+    !question
+      ? res.status(errorMessage.statusCode).send(errorMessage.message)
+      : res.status(errorMessageEn.OK.statusCode).send(question);
   } catch (err) {
-    // If an error occurs, return a 404 error response
-    res.status(404).send(err);
+    // If an error occurs, return a error response
+    const errorMessage =
+      req.params.countryCode === "es"
+        ? errorMessageEs.INTERNAL_SERVER_ERROR
+        : req.params.countryCode === "en"
+        ? errorMessageEn.INTERNAL_SERVER_ERROR
+        : "";
+    res.status(errorMessage.statusCode).send({
+      success: false,
+      message: errorMessage.message,
+      error: err.message,
+    });
   }
 });
 
