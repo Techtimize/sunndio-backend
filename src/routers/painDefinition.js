@@ -3,6 +3,8 @@ const router = express.Router();
 const paindefinition = require("../models/painDefinition");
 const errorMessageEn = require("../Error-Handling/error-handlingEn.json");
 const errorMessageEs = require("../Error-Handling/error-handlingEs.json");
+const CountryCode = require("../enums/countryCodeEnum");
+
 
 // insert the painDefinition data in to MonogoDB
 router.post("/painDefinition", async (req, res) => {
@@ -16,68 +18,47 @@ router.post("/painDefinition", async (req, res) => {
 });
 // Define the route for retrieving pain definitions based on a pain area ID
 router.get("/painDefinitionsByPainAreaId/:countryCode/:painAreaId", async (req, res) => {
-    // Check the country code from the request parameters
-    if (req.params.countryCode === "es") {
-      try {
-        // Attempt to retrieve pain definitions for the specified pain area ID, excluding the `painAreaId` and `name` fields
-        const getPainDefinition = await paindefinition.find({ painAreaId: req.params.painAreaId }, { painAreaId: 0, name: 0 });
-        // Return the pain definitions with a status code of 200 OK
-        res.status(200).send(getPainDefinition);
-      } catch (err) {
-        // If an error occurs, retrieve the error message for failed pain definition retrieval
-        const errorMessage = errorMessageEs.PAIN_DEFINITIONS_RETRIEVAL_FAILED;
-        // Return the error message with a status code of 404 Not Found
-        res.status(errorMessage.statusCode).send({
-          success: false,
-          message: errorMessage.message,
-          error: err.message
-        });
-      }
-    } else if (req.params.countryCode === "en") {
-      try {
-        // Attempt to retrieve pain definitions for the specified pain area ID, excluding the `painAreaId` and `nameEs` fields
-        const getPainDefinition = await paindefinition.find({ painAreaId: req.params.painAreaId }, { painAreaId: 0, nameEs: 0 });
-        // Return the pain definitions with a status code of 200 OK
-        res.status(200).send(getPainDefinition);
-      } catch (err) {
-        // If an error occurs, retrieve the error message for failed pain definition retrieval
-        const errorMessage = errorMessageEn.PAIN_DEFINITIONS_RETRIEVAL_FAILED;
-        // Return the error message with a status code of 404 Not Found
-        res.status(errorMessage.statusCode).send({
-          success: false,
-          message: errorMessage.message,
-          error: err.message
-        });
-      }
-    } else {
-      // If the country code is not "es" or "en", retrieve the error message for invalid country code
-      const errorMessage = errorMessageEs.INVALID_COUNTRY_CODE;
-      // Return the error message with a status code of 400 Bad Request
-      res.status(errorMessage.statusCode).send({
-        success: false,
-        message: `${errorMessage.message}: "${req.params.countryCode}"`
-      });
+    try {
+        var getPaindefinition;
+        // Check if the request country code is valid
+        if (req.params.countryCode === CountryCode.SPANISH) {
+            // Find all pain definitions for a specific pain area, excluding the pain area id and name fields
+            getPaindefinition = await paindefinition.find({ painAreaId: req.params.painAreaId }, { painAreaId: 0, name: 0 });
+        } else if (req.params.countryCode === CountryCode.ENGLISH) {
+            // Find all pain definitions for a specific pain area, excluding the pain area id and Spanish name fields
+            getPaindefinition = await paindefinition.find({ painAreaId: req.params.painAreaId }, { painAreaId: 0, nameEs: 0 });
+        }
+        else {
+            // Return an error if the country code is not valid
+            res.status(400).json({ success: `${req.params.countryCode} this countryCode is not available`});
+        }
+        res.status(200).send(getPaindefinition);
     }
-  });
+    catch (err) {
+        res.status(500).send(err);
+    }
+});
+
 // get all the painDefinition data
 router.get("/painDefinitions/:countryCode", async (req, res) => {
-    if (req.params.countryCode === "es") {
-        try {
-            const getPaindefinition = await paindefinition.find({}, { name: 0 });
-            res.status(200).send(getPaindefinition);
-        } catch (err) {
-            res.status(404).send(err);
+    try {
+        var getPaindefinition;
+        // Check if the request country code is valid
+        if (req.params.countryCode === CountryCode.SPANISH) {
+            // Find all pain definitions, excluding the name field in English
+            getPaindefinition = await paindefinition.find({}, { name: 0 });
+        } else if (req.params.countryCode === CountryCode.ENGLISH) {
+            // Find all pain definitions, excluding the nameEs field in Spanish 
+            getPaindefinition = await paindefinition.find({}, { nameEs: 0 });
+        } else {
+            // Return an error if the country code is not valid
+            res.status(400).json({ success: `${req.params.countryCode} this countryCode is not available`});
         }
+        res.status(200).send(getPaindefinition);
     }
-    else if (req.params.countryCode === "en") {
-        try {
-            const getPaindefinition = await paindefinition.find({}, { nameEs: 0 });
-            res.status(200).send(getPaindefinition);
-        } catch (err) {
-            res.status(404).send(err);
-        }
+    catch (err) {
+        res.status(500).send(err);
     }
-
 });
 // get the painDefinitions data by painDefinitionId
 router.get("/painDefinitions/:id", async (req, res) => {

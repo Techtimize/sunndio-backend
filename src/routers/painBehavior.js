@@ -3,6 +3,8 @@ const router = express.Router();
 const painBehaviorModel = require("../models/painBehavior");
 const errorMessageEn = require("../Error-Handling/error-handlingEn.json");
 const errorMessageEs = require("../Error-Handling/error-handlingEs.json");
+const CountryCode = require("../enums/countryCodeEnum");
+
 
 // Route to insert pain behavior data into MongoDB
 router.post("/painbehavior", async (req, res) => {
@@ -20,86 +22,62 @@ router.post("/painbehavior", async (req, res) => {
 });
 
 // Route to get pain behaviors by pain definition id
-router.get(
-  "/painBehaviorsByPainDefinition/:countryCode/:painDefinitionId",
-  async (req, res) => {
-    if (req.params.countryCode === "es") {
-      try {
-        // Finding the pain behaviors by pain definition id
-        const foundPainBehaviors = await painBehaviorModel.find(
-          { painDefinitionId: req.params.painDefinitionId },
-          { painDefinitionId: 0, name: 0 }
-        );
-        // Sending a 200 (OK) status and the found pain behaviors data as response
-        res.status(200).send(foundPainBehaviors);
-      } catch (err) {
-        // If an error occurs, retrieve the error message for failed pain behavior retrieval
-        const errorMessage = errorMessageEs.PAIN_BEHAVIORS_RETRIEVAL_FAILED;
-        // Return the error message with a status code of 404 Not Found
-        res.status(errorMessage.statusCode).send({
-          success: false,
-          message: errorMessage.message,
-          error: err.message
-        });
-      }
+router.get("/painBehaviorsByPainDefinition/:countryCode/:painDefinitionId", async (req, res) => {
+  try {
+    var foundPainBehaviors;
+    // Check the provided country code to return pain behaviors in the appropriate language
+    if (req.params.countryCode === CountryCode.SPANISH) {
+      foundPainBehaviors = await painBehaviorModel.find(
+        { painDefinitionId: req.params.painDefinitionId },
+        // Return all fields except for painDefinitionId and name in English
+        { painDefinitionId: 0, name: 0 }
+      );
     }
-    else if (req.params.countryCode === "en") {
-      try {
-        // Finding the pain behaviors by pain definition id
-        const foundPainBehaviors = await painBehaviorModel.find(
-          { painDefinitionId: req.params.painDefinitionId },
-          { painDefinitionId: 0, nameEs: 0 }
-        );
-        // Sending a 200 (OK) status and the found pain behaviors data as response
-        res.status(200).send(foundPainBehaviors);
-      } catch (err) {
-        // If an error occurs, retrieve the error message for failed pain behavior retrieval
-        const errorMessage = errorMessageEn.PAIN_BEHAVIORS_RETRIEVAL_FAILED;
-        // Return the error message with a status code of 404 Not Found
-        res.status(errorMessage.statusCode).send({
-          success: false,
-          message: errorMessage.message,
-          error: err.message
-        });
-      }
+    else if (req.params.countryCode === CountryCode.ENGLISH) {
+      foundPainBehaviors = await painBehaviorModel.find(
+        { painDefinitionId: req.params.painDefinitionId },
+        // Return all fields except for painDefinitionId and name in Spanish 
+        { painDefinitionId: 0, nameEs: 0 }
+      );
     }
     else {
-      // If the country code is not "es" or "en", retrieve the error message for invalid country code
-      const errorMessage = errorMessageEs.INVALID_COUNTRY_CODE;
-      // Return the error message with a status code of 400 Bad Request
-      res.status(errorMessage.statusCode).send({
-        success: false,
-        message: `${errorMessage.message}: "${req.params.countryCode}"`
-      });
+      // If the provided country code is not valid, return an error message
+      res.status(400).json({ success: `${req.params.countryCode} this countryCode is not available `});
     }
-  });
+    // Return the found pain behaviors
+    res.status(200).send(foundPainBehaviors);
+  } catch (error) {
+    // Return a server error if something went wrong while fetching the data
+    res.status(500).send(error);
+  }
+});
 
 // Route to get all pain behaviors from MongoDB
 router.get("/painBehaviors/:countryCode", async (req, res) => {
-  if (req.params.countryCode === "es") {
-    try {
-      // Finding all the pain behaviors in the database
-      const foundPainBehaviors = await painBehaviorModel.find({}, { name: 0 });
-      // Sending a 200 (OK) status and the found pain behaviors data as response
-      res.status(200).send(foundPainBehaviors);
-    } catch (error) {
-      // Sending a 404 (Not Found) status and the error message as response
-      res.status(404).send(error);
+  try {
+    var foundPainBehaviors;
+    // Check the provided country code to return pain behaviors in the appropriate language
+    if (req.params.countryCode === CountryCode.SPANISH) {
+      foundPainBehaviors = await painBehaviorModel.find(
+        // Return all pain behaviors, except for the name in Spanish
+        {}, { name: 0 }
+      );
     }
-  }
-  else if (req.params.countryCode === "en") {
-    try {
-      // Finding all the pain behaviors in the database
-      const foundPainBehaviors = await painBehaviorModel.find({}, { nameEs: 0 });
-      // Sending a 200 (OK) status and the found pain behaviors data as response
-      res.status(200).send(foundPainBehaviors);
-    } catch (error) {
-      // Sending a 404 (Not Found) status and the error message as response
-      res.status(404).send(error);
+    else if (req.params.countryCode === CountryCode.ENGLISH) {
+      foundPainBehaviors = await painBehaviorModel.find(
+        // Return all pain behaviors, except for the name in English
+        {}, { nameEs: 0 }
+      );
+    } else {
+      // If the provided country code is not valid, return an error message
+      res.status(400).json({ success: `${req.params.countryCode} this countryCode is not available `});
     }
+    // Return the found pain behaviors
+    res.status(200).send(foundPainBehaviors);
   }
-  else {
-    res.status(400).json({ success: `"${req.params.countryCode}" this countryCode is not available` });
+  catch (err) {
+    // Return a server error if something went wrong while fetching the data
+    res.status(404).send(err);
   }
 });
 

@@ -8,6 +8,7 @@ const PainPossibleDiag = require("../models/painPossibleDiagnostics");
 const PainBehaviorQuestion = require("../models/painBehaviorQuestion");
 const errorMessageEn = require("../Error-Handling/error-handlingEn.json");
 const errorMessageEs = require("../Error-Handling/error-handlingEs.json");
+const CountryCode = require("../enums/countryCodeEnum");
 
 // Function to retrieve the probability for a given pain behavior ID
 const getProbabilityByPainBehaviorId = (request) => {
@@ -92,21 +93,24 @@ router.get("/calculateDiagnotics/:countryCode", async (req, res) => {
       }
       // Round the percentage to the nearest whole number and add it to the resultPercentage array
       let percentage = Math.round(per + probability);
+      let diagnosisObj = {}
       per = 0;
-      if (req.params.countryCode == "es") {
-        let obj = {
+      if (req.params.countryCode == CountryCode.SPANISH) {
+        diagnosisObj = {
           possibleDiagnostic: populateDiagnosis[i].diagnosticsId.diagnosisNameEs,
           percentage: percentage
         };
-        resultPercentage.push(obj);
       }
-      else if (req.params.countryCode == "en") {
-        let obj = {
+      else if (req.params.countryCode == CountryCode.ENGLISH) {
+        diagnosisObj = {
           possibleDiagnostic: populateDiagnosis[i].diagnosticsId.diagnosisName,
           percentage: percentage
         };
-        resultPercentage.push(obj);
       }
+      else {
+        res.status(400).json({ success: `"${req.params.countryCode}" this countryCode is not available` });
+      }
+      resultPercentage.push(diagnosisObj);
     }
     if (req.params.countryCode !== "es" && req.params.countryCode !== "en") {
       // If the country code is not "es" or "en", retrieve the error message for invalid country code

@@ -18,73 +18,56 @@ router.post("/painarea", async (req, res) => {
   }
 });
 
-// Define the route for retrieving live pain areas
+// Route to get all live pain areas by country code
 router.get("/painareas/:countryCode", async (req, res) => {
-  // Check the country code from the request parameters
-  if (req.params.countryCode === "es") {
-    try {
-      // Attempt to retrieve live pain areas, excluding the `name` field
-      const livePainAreas = await PainArea.find({ isLive: true }, { name: 0 });
-      // Return the live pain areas with a status code of 200 OK
-      res.status(200).send(livePainAreas);
-    } catch (err) {
-      // If an error occurs, retrieve the error message for failed pain area retrieval
-      const errorMessage = errorMessageEs.PAIN_AREAS_RETRIEVAL_FAILED;
-      // Return the error message with a status code of 404 Not Found
-      res.status(errorMessage.statusCode).send({
-        success: false,
-        message: errorMessage.message,
-        error: err.message
-      });
+  try {
+    var livePainAreas;
+    // Check if the country code is Spanish
+    if (req.params.countryCode === CountryCode.SPANISH) {
+      // Find all pain areas where isLive is true and exclude the name field
+      livePainAreas = await PainArea.find({ isLive: true }, { name: 0 });
     }
-  } else if (req.params.countryCode === "en") {
-    try {
-      // Attempt to retrieve live pain areas, excluding the `nameEs` field
-      const livePainAreas = await PainArea.find({ isLive: true }, { nameEs: 0 });
-      // Return the live pain areas with a status code of 200 OK
-      res.status(200).send(livePainAreas);
-    } catch (err) {
-      // If an error occurs, retrieve the error message for failed pain area retrieval
-      const errorMessage = errorMessageEn.PAIN_AREAS_RETRIEVAL_FAILED;
-      // Return the error message with a status code of 404 Not Found
-      res.status(errorMessage.statusCode).send({
-        success: false,
-        message: errorMessage.message,
-        error: err.message
-      });
+    // Check if the country code is English
+    else if (req.params.countryCode === CountryCode.ENGLISH) {
+      // Find all pain areas where isLive is true and exclude the nameEs field
+      livePainAreas = await PainArea.find({ isLive: true }, { nameEs: 0 });
     }
-  } else {
-    // If the country code is not "es" or "en", retrieve the error message for invalid country code
-    const errorMessage = errorMessageEs.INVALID_COUNTRY_CODE;
-    // Return the error message with a status code of 400 Bad Request
-    res.status(errorMessage.statusCode).send({
-      success: false,
-      message: `${errorMessage.message}: "${req.params.countryCode}"`
-    });
+    // If the country code is not recognized, return an error response
+    else {
+      res.status(400).json({ success: `"${req.params.countryCode}" this countryCode is not available` });
+    }
+    // Check if any live pain areas were found and send a response accordingly
+    !livePainAreas ? res.status(404).send("Not Found") : res.status(200).send(livePainAreas);
+  } catch (err) {
+    // If an error occurs, send a 500 response with the error message
+    res.status(500).send(err);
   }
 });
 
-// Route to get a pain area by id
+// Route to get a pain area by ID and country code
 router.get("/painarea/:countryCode/:painAreaId", async (req, res) => {
-  if (req.params.countryCode === "es") {
-    try {
-      // get the id from the request parameters and find the pain area by id
-      const painArea = await PainArea.findById(req.params.painAreaId, { name: 0 });
-      // if the pain area is not found, return a 404 error
-      !painArea ? res.status(404).send() : res.status(200).send(painArea);
-    } catch (err) {
-      res.status(404).send(err);
+  try {
+    var painArea;
+    // Check if the country code is Spanish
+    if (req.params.countryCode === CountryCode.SPANISH) {
+      // Find the pain area by ID and exclude the name field
+      painArea = await PainArea.findById(req.params.painAreaId, { name: 0 });
     }
+    // Check if the country code is English
+    else if (req.params.countryCode === CountryCode.ENGLISH) {
+      // Find the pain area by ID and exclude the nameEs field
+      painArea = await PainArea.findById(req.params.painAreaId, { nameEs: 0 });
+    }
+    // If the country code is not recognized, return an error response
+    else {
+      res.status(400).json({ success: `"${req.params.countryCode}" this countryCode is not available` });
+    }
+    // Check if the pain area was found and send a response accordingly
+    !painArea ? res.status(404).send("Not Found") : res.status(200).send(painArea);
   }
-  else if (req.params.countryCode === "en") {
-    try {
-      // get the id from the request parameters and find the pain area by id
-      const painArea = await PainArea.findById(req.params.painAreaId, { nameEs: 0 });
-      // if the pain area is not found, return a 404 error
-      !painArea ? res.status(404).send() : res.status(200).send(painArea);
-    } catch (err) {
-      res.status(404).send(err);
-    }
+  catch (err) {
+    // If an error occurs, send a 500 response with the error message
+    res.status(500).send(err);
   }
 });
 
