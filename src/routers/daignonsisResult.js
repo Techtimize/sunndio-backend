@@ -69,7 +69,7 @@ const getPainBehaviorQuestion = (request) => {
   return result;
 };
 
-router.get("/calculateDiagnotics/:countryCode", async (req, res) => {
+router.post("/calculateDiagnotics/:countryCode", async (req, res) => {
   try {
     // Get the probability of a condition based on the pain behavior ID
     const getProbability = await getProbabilityByPainBehaviorId(req.body);
@@ -135,7 +135,7 @@ router.get("/calculateDiagnotics/:countryCode", async (req, res) => {
       resultPercentage.push(diagnosisObj);
     }
     // Send the resultPercentage array as a response with a status code of 200 (OK)
-    res.status(200).send(resultPercentage);
+    res.status(200).send(resultPercentage.sort((a, b) => b.percentage - a.percentage).slice(0, 3));
   } catch (err) {
     // If an error occurs, retrieve the error message for failed calculate the diagnosis result
     const errorMessage =
