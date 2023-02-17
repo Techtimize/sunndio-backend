@@ -17,24 +17,23 @@ router.get("/questionsByPainBehavior/:countryCode/:painBehaviorId", async (req, 
     const questionIDs = await painBehaviorQuestion.find({
       painBehaviorId: req.params.painBehaviorId,
     }, {
-      painBehaviorId: 0,
-      _id: 0,
+      painBehaviorId: 0
     }).populate("questionId");
     // Extract the populated question documents from the query result
-    const mappedQuestions = questionIDs.map((_question) => _question.questionId);
+    //const mappedQuestions = questionIDs.map((_question) => _question.questionId);
     var question;
     if (reqCountryCode === CountryCode.SPANISH) {
       // Map the questions to a new array with only the Spanish version of the question
-      question = mappedQuestions.map(item => ({
+      question = questionIDs.map(item => ({
         _id: item._id,
-        question: item.questionEs,
+        question: item.questionId.questionEs,
       }));
     }
     else if (reqCountryCode === CountryCode.ENGLISH || reqCountryCode === CountryCode.ENGLISH_US) {
       // Map the questions to a new array with only the English version of the question
-      question = mappedQuestions.map(item => ({
+      question = questionIDs.map(item => ({
         _id: item._id,
-        question: item.question
+        question: item.questionId.question
       }));
     } else {
       // If an invalid country code is specified, return an error response
@@ -52,7 +51,7 @@ router.get("/questionsByPainBehavior/:countryCode/:painBehaviorId", async (req, 
         : reqCountryCode === CountryCode.ENGLISH || reqCountryCode === CountryCode.ENGLISH_US
         ? errorMessageEn.QUESTION_BY_PAIN_BEHAVIORS_RETRIEVAL_FAILED
         : "";
-    // Check if any live pain areas were found and send a response accordingly
+    // Check if any questions were found and send a response accordingly
     !question
       ? res.status(errorMessage.statusCode).send(errorMessage.message)
       : res.status(errorMessageEn.OK.statusCode).send(question);

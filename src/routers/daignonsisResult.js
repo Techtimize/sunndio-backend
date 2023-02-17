@@ -5,7 +5,6 @@ const router = express.Router();
 const Probability = require("../models/probability");
 const AssignResult = require("../models/assignResult");
 const PainPossibleDiag = require("../models/painPossibleDiagnostics");
-const PainBehaviorQuestion = require("../models/painBehaviorQuestion");
 const errorMessageEn = require("../Error-Handling/error-handlingEn.json");
 const errorMessageEs = require("../Error-Handling/error-handlingEs.json");
 const CountryCode = require("../enums/countryCodeEnum");
@@ -18,23 +17,13 @@ const getProbabilityByPainBehaviorId = (request) => {
 };
 
 // Function to retrieve the assign result for a given pain behavior ID and question answer
-const getAssignResultByPainBehaviorId = (request, question, index) => {
-  let painBehQuesId = "";
-  for (i = 0; i < question.length; i++) {
-    if (
-      JSON.stringify(question[i].questionId._id) ===
-      JSON.stringify(request.questionAnswer[index].questionId)
-    ) {
-      painBehQuesId = question[i]._id;
-      break;
-    }
-  }
-  // Find the result based on the painBehaviorId, DiagAnswer and painBehaviorQuestionId
+const getAssignResultByPainBehaviorId = (request, index) => {
+   // Find the result based on the painBehaviorId, DiagAnswer and painBehaviorQuestionId
   const result = AssignResult.find(
     {
       painBehaviorId: request.painBehaviorId,
       DiagAnswer: request.questionAnswer[index].isYes,
-      painBehaviorQuestionId: painBehQuesId,
+      painBehaviorQuestionId: request.questionAnswer[index].questionId,
     },
     {
       Percentage: 1,
@@ -60,16 +49,8 @@ const possibleDiagnosis = (request) => {
   return getPainPossibleDiag;
 };
 
-// Function to retrieve the pain behavior questions for a given pain behavior ID
-const getPainBehaviorQuestion = (request) => {
-  // Find the pain behavior question based on the painBehaviorId
-  const result = PainBehaviorQuestion.find({
-    painBehaviorId: request.painBehaviorId,
-  }).populate("questionId");
-  return result;
-};
-
 router.post("/calculateDiagnotics/:countryCode", async (req, res) => {
+  const reqCountryCode = req.params.countryCode.toLowerCase();
   try {
     // Get the probability of a condition based on the pain behavior ID
     const getProbability = await getProbabilityByPainBehaviorId(req.body);
@@ -80,14 +61,11 @@ router.post("/calculateDiagnotics/:countryCode", async (req, res) => {
 
     // Initialize an array to store the results of the assignResult function
     let assignResult = [];
-    // Get the pain behavior questions based on the pain behavior ID
-    const painBehaviorQuestion = await getPainBehaviorQuestion(req.body);
     // Loop through the pain behavior questions
-    for (i = 0; i < painBehaviorQuestion.length; i++) {
+    for (i = 0; i < req.body.questionAnswer.length; i++) {
       // For each question, get the assignResult and add it to the assignResult array
       let data = await getAssignResultByPainBehaviorId(
         req.body,
-        painBehaviorQuestion,
         i
       );
       assignResult = assignResult.concat(data);
@@ -112,36 +90,44 @@ router.post("/calculateDiagnotics/:countryCode", async (req, res) => {
       let percentage = Math.round(per + probability);
       let diagnosisObj = {};
       per = 0;
-      if (req.params.countryCode == CountryCode.SPANISH) {
+      if (reqCountryCode == CountryCode.SPANISH) {
         diagnosisObj = {
           possibleDiagnostic:
             populateDiagnosis[i].diagnosticsId.diagnosisNameEs,
           percentage: percentage,
         };
-      } else if (req.params.countryCode == CountryCode.ENGLISH) {
+      } else if (reqCountryCode == CountryCode.ENGLISH || reqCountryCode == CountryCode.ENGLISH_US) {
         diagnosisObj = {
           possibleDiagnostic: populateDiagnosis[i].diagnosticsId.diagnosisName,
           percentage: percentage,
         };
       } else {
-        // If the country code is not "es" or "en", retrieve the error message for invalid country code
+        // If the country code is not CountryCode.SPANISH or CountryCode.ENGLISH, retrieve the error message for invalid country code
         const errorMessage = errorMessageEs.INVALID_COUNTRY_CODE;
         // Return the error message with a status code of 400 Bad Request
         res.status(errorMessage.statusCode).send({
           success: false,
-          message: `${errorMessage.message}: "${req.params.countryCode}"`,
+          message: `${errorMessage.message}: "${reqCountryCode}"`,
         });
       }
       resultPercentage.push(diagnosisObj);
     }
+    const errorMessage =
+      reqCountryCode === CountryCode.SPANISH
+        ? errorMessageEs.QUESTION_BY_PAIN_BEHAVIORS_RETRIEVAL_FAILED
+        : reqCountryCode === CountryCode.ENGLISH || reqCountryCode === CountryCode.ENGLISH_US
+        ? errorMessageEn.QUESTION_BY_PAIN_BEHAVIORS_RETRIEVAL_FAILED
+        : "";
     // Send the resultPercentage array as a response with a status code of 200 (OK)
-    res.status(200).send(resultPercentage.sort((a, b) => b.percentage - a.percentage).slice(0, 3));
+    !resultPercentage
+      ? res.status(errorMessage.statusCode).send(errorMessage.message)
+      : res.status(errorMessageEn.OK.statusCode).send(resultPercentage.sort((a, b) => b.percentage - a.percentage).slice(0, 3));
   } catch (err) {
     // If an error occurs, retrieve the error message for failed calculate the diagnosis result
     const errorMessage =
-      req.params.countryCode === "es"
+      reqCountryCode === CountryCode.SPANISH
         ? errorMessageEs.INTERNAL_SERVER_ERROR
-        : req.params.countryCode === "en"
+        : reqCountryCode === CountryCode.ENGLISH || reqCountryCode == CountryCode.ENGLISH_US
         ? errorMessageEn.INTERNAL_SERVER_ERROR
         : "";
     res.status(errorMessage.statusCode).send({
