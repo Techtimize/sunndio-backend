@@ -21,45 +21,59 @@ router.post("/painarea", async (req, res) => {
 
 // Route to get all live pain areas by country code
 router.get("/painareas/:countryCode", async (req, res) => {
+  const reqCountryCode = req.params.countryCode.toLowerCase();
   try {
-    var livePainAreas;
+    // Find all pain areas where isLive is true
+    const livePainAreas = await PainArea.find({ isLive: true });
+    let painAreaObj = {};
+    let painAreas = [];
     // Check if the country code is Spanish
-    if (req.params.countryCode === CountryCode.SPANISH) {
-      // Find all pain areas where isLive is true and exclude the name field
-      livePainAreas = await PainArea.find({ isLive: true }, { name: 0 });
-    }
-    // Check if the country code is English
-    else if (req.params.countryCode === CountryCode.ENGLISH) {
-      // Find all pain areas where isLive is true and exclude the nameEs field
-      livePainAreas = await PainArea.find({ isLive: true }, { nameEs: 0 });
-    }
-    // If the country code is not recognized, return an error response
-    else {
-      const errorMessage = errorMessageEs.INVALID_COUNTRY_CODE;
-      res
-        .status(errorMessage.statusCode)
-        .json({
-          success: `"${req.params.countryCode}" ${errorMessage.message}`,
+    for (i = 0; i < livePainAreas.length; i++) {
+      if (reqCountryCode === CountryCode.SPANISH) {
+        painAreaObj = {
+          _id: livePainAreas[i]._id,
+          name: livePainAreas[i].nameEs,
+        };
+      }
+      // Check if the country code is English
+      else if (
+        reqCountryCode === CountryCode.ENGLISH ||
+        reqCountryCode === CountryCode.ENGLISH_US
+      ) {
+        painAreaObj = {
+          _id: livePainAreas[i]._id,
+          name: livePainAreas[i].name,
+        };
+      }
+      // If the country code is not recognized, return an error response
+      else {
+        const errorMessage = errorMessageEn.INVALID_COUNTRY_CODE;
+        return res.status(errorMessage.statusCode).json({
+          success: `"${reqCountryCode}" ${errorMessage.message}`,
         });
+      }
+      painAreas.push(painAreaObj);
     }
     const errorMessage =
-      req.params.countryCode === "es"
+      reqCountryCode === CountryCode.SPANISH
         ? errorMessageEs.PAIN_AREAS_RETRIEVAL_FAILED
-        : req.params.countryCode === "en"
+        : reqCountryCode === CountryCode.ENGLISH ||
+          reqCountryCode === CountryCode.ENGLISH_US
         ? errorMessageEn.PAIN_AREAS_RETRIEVAL_FAILED
         : "";
     // Check if any live pain areas were found and send a response accordingly
-    !livePainAreas
+    return !painAreas
       ? res.status(errorMessage.statusCode).send(errorMessage.message)
-      : res.status(errorMessageEn.OK.statusCode).send(livePainAreas);
+      : res.status(errorMessageEn.OK.statusCode).send(painAreas);
   } catch (err) {
     const errorMessage =
-      req.params.countryCode === "es"
+      reqCountryCode === CountryCode.SPANISH
         ? errorMessageEs.INTERNAL_SERVER_ERROR
-        : req.params.countryCode === "en"
+        : reqCountryCode === CountryCode.ENGLISH ||
+          reqCountryCode === CountryCode.ENGLISH_US
         ? errorMessageEn.INTERNAL_SERVER_ERROR
         : "";
-    res.status(errorMessage.statusCode).send({
+    return res.status(errorMessage.statusCode).send({
       success: false,
       message: errorMessage.message,
       error: err.message,
@@ -69,44 +83,58 @@ router.get("/painareas/:countryCode", async (req, res) => {
 
 // Route to get a pain area by ID and country code
 router.get("/painarea/:countryCode/:painAreaId", async (req, res) => {
+  const reqCountryCode = req.params.countryCode.toLowerCase();
+  console.log(reqCountryCode);
   try {
-    var painArea;
+    // Find the pain area by ID
+    const painArea = await PainArea.findById(req.params.painAreaId);
+    console.log(painArea);
+    let painAreaObj = {};
+    let painAreas = [];
     // Check if the country code is Spanish
-    if (req.params.countryCode === CountryCode.SPANISH) {
-      // Find the pain area by ID and exclude the name field
-      painArea = await PainArea.findById(req.params.painAreaId, { name: 0 });
+    if (reqCountryCode === CountryCode.SPANISH) {
+      painAreaObj = {
+        _id: painArea._id,
+        name: painArea.nameEs,
+      };
     }
     // Check if the country code is English
-    else if (req.params.countryCode === CountryCode.ENGLISH) {
-      // Find the pain area by ID and exclude the nameEs field
-      painArea = await PainArea.findById(req.params.painAreaId, { nameEs: 0 });
+    else if (
+      reqCountryCode === CountryCode.ENGLISH ||
+      reqCountryCode === CountryCode.ENGLISH_US
+    ) {
+      painAreaObj = {
+        _id: painArea._id,
+        name: painArea.name,
+      };
     }
     // If the country code is not recognized, return an error response
     else {
-      const errorMessage = errorMessageEs.INVALID_COUNTRY_CODE;
-      res
-        .status(errorMessage.statusCode)
-        .json({
-          success: `"${req.params.countryCode}" ${errorMessage.message}`,
-        });
+      const errorMessage = errorMessageEn.INVALID_COUNTRY_CODE;
+      res.status(errorMessage.statusCode).json({
+        success: `"${reqCountryCode}" ${errorMessage.message}`,
+      });
     }
+    painAreas.push(painAreaObj);
     // Check if the pain area was found and send a response accordingly
     const errorMessage =
-      req.params.countryCode === "es"
+      reqCountryCode === CountryCode.SPANISH
         ? errorMessageEs.PAIN_AREAS_RETRIEVAL_FAILED
-        : req.params.countryCode === "en"
+        : reqCountryCode === CountryCode.ENGLISH ||
+          reqCountryCode === CountryCode.ENGLISH_US
         ? errorMessageEn.PAIN_AREAS_RETRIEVAL_FAILED
         : "";
     // Check if any live pain areas were found and send a response accordingly
-    !painArea
+    !painAreas
       ? res.status(errorMessage.statusCode).send(errorMessage.message)
-      : res.status(errorMessageEn.OK.statusCode).send(painArea);
+      : res.status(errorMessageEn.OK.statusCode).send(painAreas);
   } catch (err) {
     // If an error occurs, send a 500 response with the error message
     const errorMessage =
-      req.params.countryCode === "es"
+      reqCountryCode === CountryCode.SPANISH
         ? errorMessageEs.INTERNAL_SERVER_ERROR
-        : req.params.countryCode === "en"
+        : reqCountryCode === CountryCode.ENGLISH ||
+          reqCountryCode === CountryCode.ENGLISH_US
         ? errorMessageEn.INTERNAL_SERVER_ERROR
         : "";
     res.status(errorMessage.statusCode).send({

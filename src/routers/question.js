@@ -2,7 +2,8 @@ const express = require("express");
 const router = express.Router();
 const question = require("../models/question");
 const CountryCode = require("../enums/countryCodeEnum");
-
+const errorMessageEn = require("../Error-Handling/error-handlingEn.json");
+const errorMessageEs = require("../Error-Handling/error-handlingEs.json");
 
 // insert questions into the to MonogoDB
 router.post("/question", async (req, res) => {
@@ -16,31 +17,42 @@ router.post("/question", async (req, res) => {
 });
 //get all questions from the MonogoDB
 router.get("/questions/:countryCode", async (req, res) => {
+  const reqCountryCode = req.params.countryCode.toLowerCase();
   try {
-    var getQuestion;
-    if (req.params.countryCode === CountryCode.SPANISH) {
-      getQuestion = await question.find({}, { question: 0 });
-    } else if (req.params.countryCode === CountryCode.ENGLISH) {
-      getQuestion = await question.find({}, { questionEs: 0 });
-    }
-    else {
-      const errorMessage = errorMessageEs.INVALID_COUNTRY_CODE;
-      res
-        .status(errorMessage.statusCode)
-        .json({
-          success: `"${req.params.countryCode}" ${errorMessage.message}`,
+    var getQuestion = await question.find();
+    let questionObj = {};
+    let questions = [];
+    for (i = 0; i < getQuestion.length; i++) {
+      if (reqCountryCode === CountryCode.SPANISH) {
+        questionObj = {
+          _id: getQuestion[i]._id,
+          question: getQuestion[i].questionEs,
+        };
+      } else if (
+        reqCountryCode === CountryCode.ENGLISH ||
+        reqCountryCode === CountryCode.ENGLISH_US
+      ) {
+        questionObj = {
+          _id: getQuestion[i]._id,
+          question: getQuestion[i].question,
+        };
+      } else {
+        const errorMessage = errorMessageEn.INVALID_COUNTRY_CODE;
+        return res.status(errorMessage.statusCode).json({
+          success: `"${reqCountryCode}" ${errorMessage.message}`,
         });
+      }
+      questions.push(questionObj);
     }
-    res.status(200).send(getQuestion);
-  }
-  catch (err) {
+    return res.status(200).send(questions);
+  } catch (err) {
     const errorMessage =
-      req.params.countryCode === "es"
+      reqCountryCode === CountryCode.SPANISH
         ? errorMessageEs.INTERNAL_SERVER_ERROR
-        : req.params.countryCode === "en"
+        : reqCountryCode === CountryCode.ENGLISH || reqCountryCode === CountryCode.ENGLISH_US
         ? errorMessageEn.INTERNAL_SERVER_ERROR
         : "";
-    res.status(errorMessage.statusCode).send({
+    return res.status(errorMessage.statusCode).send({
       success: false,
       message: errorMessage.message,
       error: err.message,
@@ -51,7 +63,7 @@ router.get("/questions/:countryCode", async (req, res) => {
 router.get("/question/:id", async (req, res) => {
   try {
     const getQuestion = await question.findById(req.params.id);
-    !getQuestion ? res.status(404).send() : res.status(200).send(getQuestion);
+    !questions ? res.status(404).send() : res.status(200).send(questions);
   } catch (err) {
     res.status(404).send(err);
   }

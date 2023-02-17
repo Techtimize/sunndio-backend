@@ -75,7 +75,6 @@ router.get("/calculateDiagnotics/:countryCode", async (req, res) => {
     const getProbability = await getProbabilityByPainBehaviorId(req.body);
     // Store the probability value in a variable
     const probability = getProbability[0].probability;
-
     // Get the possible diagnoses based on the pain behavior ID
     const populateDiagnosis = await possibleDiagnosis(req.body);
 

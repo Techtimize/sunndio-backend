@@ -10,6 +10,7 @@ const errorMessageEs = require("../Error-Handling/error-handlingEs.json");
 
 // Route to get questions by pain behavior ID and country code
 router.get("/questionsByPainBehavior/:countryCode/:painBehaviorId", async (req, res) => {
+  const reqCountryCode = req.params.countryCode.toLowerCase();
   try {
     // Query the painBehaviorQuestion model for all question IDs associated with the specified pain behavior ID
     // and populate the actual question document for each ID
@@ -22,35 +23,33 @@ router.get("/questionsByPainBehavior/:countryCode/:painBehaviorId", async (req, 
     // Extract the populated question documents from the query result
     const mappedQuestions = questionIDs.map((_question) => _question.questionId);
     var question;
-    if (req.params.countryCode === CountryCode.SPANISH) {
+    if (reqCountryCode === CountryCode.SPANISH) {
       // Map the questions to a new array with only the Spanish version of the question
       question = mappedQuestions.map(item => ({
         _id: item._id,
-        questionEs: item.questionEs,
-        __v: item.__v
+        question: item.questionEs,
       }));
     }
-    else if (req.params.countryCode === CountryCode.ENGLISH) {
+    else if (reqCountryCode === CountryCode.ENGLISH || reqCountryCode === CountryCode.ENGLISH_US) {
       // Map the questions to a new array with only the English version of the question
       question = mappedQuestions.map(item => ({
         _id: item._id,
-        question: item.question,
-        __v: item.__v
+        question: item.question
       }));
     } else {
       // If an invalid country code is specified, return an error response
-      const errorMessage = errorMessageEs.INVALID_COUNTRY_CODE;
+      const errorMessage = errorMessageEn.INVALID_COUNTRY_CODE;
       res
         .status(errorMessage.statusCode)
         .json({
-          success: `"${req.params.countryCode}" ${errorMessage.message}`,
+          success: `"${reqCountryCode}" ${errorMessage.message}`,
         });
     }
     // Return the resulting array of questions
     const errorMessage =
-      req.params.countryCode === "es"
+      reqCountryCode === CountryCode.SPANISH
         ? errorMessageEs.QUESTION_BY_PAIN_BEHAVIORS_RETRIEVAL_FAILED
-        : req.params.countryCode === "en"
+        : reqCountryCode === CountryCode.ENGLISH || reqCountryCode === CountryCode.ENGLISH_US
         ? errorMessageEn.QUESTION_BY_PAIN_BEHAVIORS_RETRIEVAL_FAILED
         : "";
     // Check if any live pain areas were found and send a response accordingly
@@ -60,9 +59,9 @@ router.get("/questionsByPainBehavior/:countryCode/:painBehaviorId", async (req, 
   } catch (err) {
     // If an error occurs, return a error response
     const errorMessage =
-      req.params.countryCode === "es"
+      reqCountryCode === CountryCode.SPANISH
         ? errorMessageEs.INTERNAL_SERVER_ERROR
-        : req.params.countryCode === "en"
+        : reqCountryCode === CountryCode.ENGLISH || reqCountryCode === CountryCode.ENGLISH_US
         ? errorMessageEn.INTERNAL_SERVER_ERROR
         : "";
     res.status(errorMessage.statusCode).send({

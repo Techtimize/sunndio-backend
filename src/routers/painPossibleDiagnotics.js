@@ -3,6 +3,8 @@ const express = require("express");
 const router = express.Router();
 const painPossibleDiag = require("../models/painPossibleDiagnostics");
 const CountryCode = require("../enums/countryCodeEnum");
+const errorMessageEn = require("../Error-Handling/error-handlingEn.json");
+const errorMessageEs = require("../Error-Handling/error-handlingEs.json");
 
 // Define a function to get the possible diagnosis for a given pain behavior
 const possibleDiagnosis = (painBehaviorId) => {
@@ -25,6 +27,7 @@ const possibleDiagnosis = (painBehaviorId) => {
 router.get(
   "/painPossibleDiagBypainBehaviorId/:countryCode/:painBehaviorId",
   async (req, res) => {
+  const reqCountryCode = req.params.countryCode.toLowerCase();
     try {
       // Get the possible diagnosis IDs using the possibleDiagnosis function
       const populatDiagnosis = await possibleDiagnosis(
@@ -35,14 +38,14 @@ router.get(
         (_diagnosis) => _diagnosis.diagnosticsId
       );
       var diagnosis;
-      if (req.params.countryCode === CountryCode.SPANISH) {
+      if (reqCountryCode === CountryCode.SPANISH) {
         // Map the diagnosis documents to the Spanish version of the diagnosis names
         diagnosis = mappedDiagnosis.map((item) => ({
           _id: item._id,
-          diagnosisNameEs: item.diagnosisNameEs,
+          diagnosisName: item.diagnosisNameEs,
           __v: item.__v,
         }));
-      } else if (req.params.countryCode === CountryCode.ENGLISH) {
+      } else if (reqCountryCode === CountryCode.ENGLISH || reqCountryCode === CountryCode.ENGLISH_US) {
         // Map the diagnosis documents to the English version of the diagnosis names
         diagnosis = mappedDiagnosis.map((item) => ({
           _id: item._id,
@@ -51,16 +54,16 @@ router.get(
         }));
       } else {
         // If the provided country code is not valid, send a 400 error
-        const errorMessage = errorMessageEs.INVALID_COUNTRY_CODE;
+        const errorMessage = errorMessageEn.INVALID_COUNTRY_CODE;
         res.status(errorMessage.statusCode).json({
-          success: `"${req.params.countryCode}" ${errorMessage.message}`,
+          success: `"${reqCountryCode}" ${errorMessage.message}`,
         });
       }
       // Send the diagnosis information
       const errorMessage =
-        req.params.countryCode === "es"
+        reqCountryCode === CountryCode.SPANISH
           ? errorMessageEs.PAIN_AREAS_RETRIEVAL_FAILED
-          : req.params.countryCode === "en"
+          : reqCountryCode === CountryCode.ENGLISH || reqCountryCode === CountryCode.ENGLISH_US
           ? errorMessageEn.PAIN_AREAS_RETRIEVAL_FAILED
           : "";
       !diagnosis
@@ -69,9 +72,9 @@ router.get(
     } catch (err) {
       // If there is an error, send a 500 error with the error message
       const errorMessage =
-        req.params.countryCode === "es"
+        reqCountryCode === CountryCode.SPANISH
           ? errorMessageEs.INTERNAL_SERVER_ERROR
-          : req.params.countryCode === "en"
+          : reqCountryCode === CountryCode.ENGLISH || reqCountryCode === CountryCode.ENGLISH_US
           ? errorMessageEn.INTERNAL_SERVER_ERROR
           : "";
       res.status(errorMessage.statusCode).send({

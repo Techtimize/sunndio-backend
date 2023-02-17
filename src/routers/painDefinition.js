@@ -19,46 +19,57 @@ router.post("/painDefinition", async (req, res) => {
 router.get(
   "/painDefinitionsByPainAreaId/:countryCode/:painAreaId",
   async (req, res) => {
+    const reqCountryCode = req.params.countryCode.toLowerCase();
     try {
-      var getPaindefinition;
-      // Check if the request country code is valid
-      if (req.params.countryCode === CountryCode.SPANISH) {
-        // Find all pain definitions for a specific pain area, excluding the pain area id and name fields
-        getPaindefinition = await paindefinition.find(
-          { painAreaId: req.params.painAreaId },
-          { painAreaId: 0, name: 0 }
-        );
-      } else if (req.params.countryCode === CountryCode.ENGLISH) {
-        // Find all pain definitions for a specific pain area, excluding the pain area id and Spanish name fields
-        getPaindefinition = await paindefinition.find(
-          { painAreaId: req.params.painAreaId },
-          { painAreaId: 0, nameEs: 0 }
-        );
-      } else {
-        // Return an error if the country code is not valid
-        const errorMessage = errorMessageEs.INVALID_COUNTRY_CODE;
-        res.status(errorMessage.statusCode).json({
-          success: `"${req.params.countryCode}" ${errorMessage.message}`,
-        });
+      // Find all pain definitions for a specific pain area
+      const getPaindefinition = await paindefinition.find({
+        painAreaId: req.params.painAreaId,
+      });
+      let painDefinitionObj = {};
+      let painDefinitions = [];
+      for (i = 0; i < getPaindefinition.length; i++) {
+        // Check if the request country code is valid
+        if (reqCountryCode === CountryCode.SPANISH) {
+          painDefinitionObj = {
+            _id: getPaindefinition[i]._id,
+            name: getPaindefinition[i].nameEs,
+          };
+        } else if (
+          reqCountryCode === CountryCode.ENGLISH ||
+          reqCountryCode === CountryCode.ENGLISH_US
+        ) {
+          painDefinitionObj = {
+            _id: getPaindefinition[i]._id,
+            name: getPaindefinition[i].name,
+          };
+        } else {
+          // Return an error if the country code is not valid
+          const errorMessage = errorMessageEn.INVALID_COUNTRY_CODE;
+          return res.status(errorMessage.statusCode).json({
+            success: `"${reqCountryCode}" ${errorMessage.message}`,
+          });
+        }
+        painDefinitions.push(painDefinitionObj);
       }
       const errorMessage =
-        req.params.countryCode === "es"
+        reqCountryCode === CountryCode.SPANISH
           ? errorMessageEs.PAIN_DEFINITIONS_RETRIEVAL_FAILED
-          : req.params.countryCode === "en"
+          : reqCountryCode === CountryCode.ENGLISH ||
+            reqCountryCode === CountryCode.ENGLISH_US
           ? errorMessageEn.PAIN_DEFINITIONS_RETRIEVAL_FAILED
           : "";
       // Check if any live pain areas were found and send a response accordingly
-      !getPaindefinition
+      return !painDefinitions
         ? res.status(errorMessage.statusCode).send(errorMessage.message)
-        : res.status(errorMessageEn.OK.statusCode).send(getPaindefinition);
+        : res.status(errorMessageEn.OK.statusCode).send(painDefinitions);
     } catch (err) {
       const errorMessage =
-        req.params.countryCode === "es"
+        reqCountryCode === CountryCode.SPANISH
           ? errorMessageEs.INTERNAL_SERVER_ERROR
-          : req.params.countryCode === "en"
+          : reqCountryCode === CountryCode.ENGLISH
           ? errorMessageEn.INTERNAL_SERVER_ERROR
           : "";
-      res.status(errorMessage.statusCode).send({
+      return res.status(errorMessage.statusCode).send({
         success: false,
         message: errorMessage.message,
         error: err.message,
@@ -69,32 +80,33 @@ router.get(
 
 // get all the painDefinition data
 router.get("/painDefinitions/:countryCode", async (req, res) => {
+  const reqCountryCode = req.params.countryCode.toLowerCase();
   try {
     var getPaindefinition;
     // Check if the request country code is valid
-    if (req.params.countryCode === CountryCode.SPANISH) {
+    if (reqCountryCode === CountryCode.SPANISH) {
       // Find all pain definitions, excluding the name field in English
       getPaindefinition = await paindefinition.find({}, { name: 0 });
-    } else if (req.params.countryCode === CountryCode.ENGLISH) {
+    } else if (reqCountryCode === CountryCode.ENGLISH) {
       // Find all pain definitions, excluding the nameEs field in Spanish
       getPaindefinition = await paindefinition.find({}, { nameEs: 0 });
     } else {
       // Return an error if the country code is not valid
       const errorMessage = errorMessageEs.INVALID_COUNTRY_CODE;
-        res.status(errorMessage.statusCode).json({
-          success: `"${req.params.countryCode}" ${errorMessage.message}`,
-        });
+      return res.status(errorMessage.statusCode).json({
+        success: `"${reqCountryCode}" ${errorMessage.message}`,
+      });
     }
     const errorMessage =
-        req.params.countryCode === "es"
-          ? errorMessageEs.PAIN_DEFINITIONS_RETRIEVAL_FAILED
-          : req.params.countryCode === "en"
-          ? errorMessageEn.PAIN_DEFINITIONS_RETRIEVAL_FAILED
-          : "";
-      // Check if any live pain areas were found and send a response accordingly
-      !getPaindefinition
-        ? res.status(errorMessage.statusCode).send(errorMessage.message)
-        : res.status(errorMessageEn.OK.statusCode).send(getPaindefinition);
+      reqCountryCode === CountryCode.SPANISH
+        ? errorMessageEs.PAIN_DEFINITIONS_RETRIEVAL_FAILED
+        : reqCountryCode === CountryCode.ENGLISH
+        ? errorMessageEn.PAIN_DEFINITIONS_RETRIEVAL_FAILED
+        : "";
+    // Check if any live pain areas were found and send a response accordingly
+    return !getPaindefinition
+      ? res.status(errorMessage.statusCode).send(errorMessage.message)
+      : res.status(errorMessageEn.OK.statusCode).send(getPaindefinition);
   } catch (err) {
     res.status(500).send(err);
   }
