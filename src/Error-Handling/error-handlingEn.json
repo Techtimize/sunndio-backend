@@ -1,0 +1,36 @@
+{
+  "OK": {
+    "statusCode" : 200
+  },
+  "Created": {
+    "statusCode" : 201
+  },
+  "PAIN_AREAS_RETRIEVAL_FAILED": {
+    "message": "Failed to retrieve live pain areas",
+    "statusCode": 404
+  },
+  "PAIN_DEFINITIONS_RETRIEVAL_FAILED": {
+    "message": "Failed to retrieve pain Definition",
+    "statusCode": 404
+  },
+  "PAIN_BEHAVIORS_RETRIEVAL_FAILED": {
+    "message": "Failed to retrieve pain Behavior",
+    "statusCode": 404
+  },
+  "QUESTION_BY_PAIN_BEHAVIORS_RETRIEVAL_FAILED": {
+    "message": "Failed to retrieve questions by pain behavior Id",
+    "statusCode": 404
+  },
+  "CALCULATE_DIAGNOSIS_RESULT_FAILED": {
+    "message": "Failed to calculate the diagnosis result",
+    "statusCode": 404
+  },
+  "INVALID_COUNTRY_CODE": {
+    "message": "Invalid country code",
+    "statusCode": 400
+  },
+  "INTERNAL_SERVER_ERROR" : {
+    "statusCode" : 500,
+    "message" : "An unexpected error occurred on the server. Please try again later."
+  }
+}

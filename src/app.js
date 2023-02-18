@@ -1,23 +1,36 @@
 const express = require("express");
-require("./db/conn");
-const PArouting = require("./routers/Pain_Area_router");
-const PDrouting = require("./routers/Pain_Definition_router");
-const PBrouting = require("./routers/Pain_Behavior_router");
-const QuesRouting = require("./routers/question_router");
-const Diagrouting = require("./routers/Diagnostics_router");
-const PBQrouting = require("./routers/PainBehaviorQuestion_router");
-const PPDrouting = require("./routers/PainPossibleDiagnotics_router");
-const Probrouting = require("./routers/Probability_router");
-const AssignResultrouting = require("./routers/AssginResult_router");
-const DiagResultrouting = require("./routers/DaignonsisResult_router");
+const cors = require("cors");
+const config = require("./config/config");
+const PORT = config.PORT;
+require("./config/db");
+
+const painAreaRouting = require("./routers/painArea");
+const painDefinitionRouting = require("./routers/painDefinition");
+const painBehaviorRouting = require("./routers/painBehavior");
+const questionRouting = require("./routers/question");
+const diagnosticsRouting = require("./routers/diagnostics");
+const painBehaviorQuestionRouting = require("./routers/painBehaviorQuestion");
+const painPossibleQuestionRouting = require("./routers/painPossibleDiagnotics");
+const probabilityRouting = require("./routers/probability");
+const assignResultRouting = require("./routers/assginResult");
+const diagResultRouting = require("./routers/daignonsisResult");
 
 const app = express();
-const PORT = process.env.PORT || 80;
-
+app.use(cors());
 app.use(express.json());
-app.use([PArouting, PDrouting, PBrouting, QuesRouting, Diagrouting, PBQrouting, PPDrouting, Probrouting, AssignResultrouting, DiagResultrouting]);
-
+app.use([
+  painAreaRouting,
+  painDefinitionRouting,
+  painBehaviorRouting,
+  questionRouting,
+  diagnosticsRouting,
+  painBehaviorQuestionRouting,
+  painPossibleQuestionRouting,
+  probabilityRouting,
+  assignResultRouting,
+  diagResultRouting,
+]);
 
 app.listen(PORT, () => {
-    console.log(`Server is running at port no ${PORT}`);
-})
+  console.log(`Server is running at port no ${PORT}`);
+});
