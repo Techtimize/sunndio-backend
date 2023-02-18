@@ -5,45 +5,69 @@ const router = express.Router();
 // Importing the painBehaviorQuestion model and the CountryCode enum
 const painBehaviorQuestion = require("../models/painBehaviorQuestion");
 const CountryCode = require("../enums/countryCodeEnum");
+const errorMessageEn = require("../Error-Handling/error-handlingEn.json");
+const errorMessageEs = require("../Error-Handling/error-handlingEs.json");
 
 // Route to get questions by pain behavior ID and country code
 router.get("/questionsByPainBehavior/:countryCode/:painBehaviorId", async (req, res) => {
+  const reqCountryCode = req.params.countryCode.toLowerCase();
   try {
     // Query the painBehaviorQuestion model for all question IDs associated with the specified pain behavior ID
     // and populate the actual question document for each ID
     const questionIDs = await painBehaviorQuestion.find({
       painBehaviorId: req.params.painBehaviorId,
     }, {
-      painBehaviorId: 0,
-      _id: 0,
+      painBehaviorId: 0
     }).populate("questionId");
     // Extract the populated question documents from the query result
-    const mappedQuestions = questionIDs.map((_question) => _question.questionId);
+    //const mappedQuestions = questionIDs.map((_question) => _question.questionId);
     var question;
-    if (req.params.countryCode === CountryCode.SPANISH) {
+    if (reqCountryCode === CountryCode.SPANISH) {
       // Map the questions to a new array with only the Spanish version of the question
-      question = mappedQuestions.map(item => ({
+      question = questionIDs.map(item => ({
         _id: item._id,
-        questionEs: item.questionEs,
-        __v: item.__v
+        question: item.questionId.questionEs,
       }));
     }
-    else if (req.params.countryCode === CountryCode.ENGLISH) {
+    else if (reqCountryCode === CountryCode.ENGLISH || reqCountryCode === CountryCode.ENGLISH_US) {
       // Map the questions to a new array with only the English version of the question
-      question = mappedQuestions.map(item => ({
+      question = questionIDs.map(item => ({
         _id: item._id,
-        question: item.question,
-        __v: item.__v
+        question: item.questionId.question
       }));
     } else {
       // If an invalid country code is specified, return an error response
-      res.status(400).json({ success: `${req.params.countryCode} this countryCode is not available ` });
+      const errorMessage = errorMessageEn.INVALID_COUNTRY_CODE;
+      res
+        .status(errorMessage.statusCode)
+        .json({
+          success: `"${reqCountryCode}" ${errorMessage.message}`,
+        });
     }
     // Return the resulting array of questions
-    res.status(200).send(question);
+    const errorMessage =
+      reqCountryCode === CountryCode.SPANISH
+        ? errorMessageEs.QUESTION_BY_PAIN_BEHAVIORS_RETRIEVAL_FAILED
+        : reqCountryCode === CountryCode.ENGLISH || reqCountryCode === CountryCode.ENGLISH_US
+        ? errorMessageEn.QUESTION_BY_PAIN_BEHAVIORS_RETRIEVAL_FAILED
+        : "";
+    // Check if any questions were found and send a response accordingly
+    !question
+      ? res.status(errorMessage.statusCode).send(errorMessage.message)
+      : res.status(errorMessageEn.OK.statusCode).send(question);
   } catch (err) {
-    // If an error occurs, return a 404 error response
-    res.status(404).send(err);
+    // If an error occurs, return a error response
+    const errorMessage =
+      reqCountryCode === CountryCode.SPANISH
+        ? errorMessageEs.INTERNAL_SERVER_ERROR
+        : reqCountryCode === CountryCode.ENGLISH || reqCountryCode === CountryCode.ENGLISH_US
+        ? errorMessageEn.INTERNAL_SERVER_ERROR
+        : "";
+    res.status(errorMessage.statusCode).send({
+      success: false,
+      message: errorMessage.message,
+      error: err.message,
+    });
   }
 });
 
