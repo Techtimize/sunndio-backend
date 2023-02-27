@@ -37,6 +37,7 @@ router.get(
           painBehaviorObj = {
             _id: foundPainBehaviors[i]._id,
             name: foundPainBehaviors[i].nameEs,
+            imageUrl : foundPainBehaviors[i].imageUrl
           };
         } else if (
           reqCountryCode === CountryCode.ENGLISH ||
@@ -45,6 +46,7 @@ router.get(
           painBehaviorObj = {
             _id: foundPainBehaviors[i]._id,
             name: foundPainBehaviors[i].name,
+            imageUrl : foundPainBehaviors[i].imageUrl
           };
         } else {
           // If the provided country code is not valid, return an error message

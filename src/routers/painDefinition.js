@@ -33,6 +33,7 @@ router.get(
           painDefinitionObj = {
             _id: getPaindefinition[i]._id,
             name: getPaindefinition[i].nameEs,
+            imageUrl : getPaindefinition[i].imageUrl
           };
         } else if (
           reqCountryCode === CountryCode.ENGLISH ||
@@ -41,6 +42,7 @@ router.get(
           painDefinitionObj = {
             _id: getPaindefinition[i]._id,
             name: getPaindefinition[i].name,
+            imageUrl : getPaindefinition[i].imageUrl
           };
         } else {
           // Return an error if the country code is not valid
