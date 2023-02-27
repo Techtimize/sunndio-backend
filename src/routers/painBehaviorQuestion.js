@@ -27,13 +27,15 @@ router.get("/questionsByPainBehavior/:countryCode/:painBehaviorId", async (req, 
       question = questionIDs.map(item => ({
         _id: item._id,
         question: item.questionId.questionEs,
+        gifUrl : item.gifUrl
       }));
     }
     else if (reqCountryCode === CountryCode.ENGLISH || reqCountryCode === CountryCode.ENGLISH_US) {
       // Map the questions to a new array with only the English version of the question
       question = questionIDs.map(item => ({
         _id: item._id,
-        question: item.questionId.question
+        question: item.questionId.question,
+        gifUrl : item.gifUrl
       }));
     } else {
       // If an invalid country code is specified, return an error response
