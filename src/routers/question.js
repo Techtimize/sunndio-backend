@@ -27,8 +27,7 @@ router.get("/questions/:countryCode", async (req, res) => {
         questionObj = {
           _id: getQuestion[i]._id,
           question:
-            getQuestion[i].questionEs.charAt(0).toUpperCase() +
-            getQuestion[i].questionEs.slice(1).toLowerCase(),
+            getQuestion[i].questionEs,
         };
       } else if (
         reqCountryCode === CountryCode.ENGLISH ||
