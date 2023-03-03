@@ -26,7 +26,9 @@ router.get("/questions/:countryCode", async (req, res) => {
       if (reqCountryCode === CountryCode.SPANISH) {
         questionObj = {
           _id: getQuestion[i]._id,
-          question: getQuestion[i].questionEs,
+          question:
+            getQuestion[i].questionEs.charAt(0).toUpperCase() +
+            getQuestion[i].questionEs.slice(1).toLowerCase(),
         };
       } else if (
         reqCountryCode === CountryCode.ENGLISH ||
@@ -34,7 +36,8 @@ router.get("/questions/:countryCode", async (req, res) => {
       ) {
         questionObj = {
           _id: getQuestion[i]._id,
-          question: getQuestion[i].question,
+          question: getQuestion[i].question.charAt(0).toUpperCase() +
+          getQuestion[i].question.slice(1).toLowerCase(),
         };
       } else {
         const errorMessage = errorMessageEn.INVALID_COUNTRY_CODE;
@@ -49,7 +52,8 @@ router.get("/questions/:countryCode", async (req, res) => {
     const errorMessage =
       reqCountryCode === CountryCode.SPANISH
         ? errorMessageEs.INTERNAL_SERVER_ERROR
-        : reqCountryCode === CountryCode.ENGLISH || reqCountryCode === CountryCode.ENGLISH_US
+        : reqCountryCode === CountryCode.ENGLISH ||
+          reqCountryCode === CountryCode.ENGLISH_US
         ? errorMessageEn.INTERNAL_SERVER_ERROR
         : "";
     return res.status(errorMessage.statusCode).send({

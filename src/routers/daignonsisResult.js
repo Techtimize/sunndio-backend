@@ -18,7 +18,7 @@ const getProbabilityByPainBehaviorId = (request) => {
 
 // Function to retrieve the assign result for a given pain behavior ID and question answer
 const getAssignResultByPainBehaviorId = (request, index) => {
-   // Find the result based on the painBehaviorId, DiagAnswer and painBehaviorQuestionId
+  // Find the result based on the painBehaviorId, DiagAnswer and painBehaviorQuestionId
   const result = AssignResult.find(
     {
       painBehaviorId: request.painBehaviorId,
@@ -64,10 +64,7 @@ router.post("/calculateDiagnotics/:countryCode", async (req, res) => {
     // Loop through the pain behavior questions
     for (i = 0; i < req.body.questionAnswer.length; i++) {
       // For each question, get the assignResult and add it to the assignResult array
-      let data = await getAssignResultByPainBehaviorId(
-        req.body,
-        i
-      );
+      let data = await getAssignResultByPainBehaviorId(req.body, i);
       assignResult = assignResult.concat(data);
     }
     // Initialize an array to store the result percentages
@@ -93,12 +90,26 @@ router.post("/calculateDiagnotics/:countryCode", async (req, res) => {
       if (reqCountryCode == CountryCode.SPANISH) {
         diagnosisObj = {
           possibleDiagnostic:
-            populateDiagnosis[i].diagnosticsId.diagnosisNameEs,
+            populateDiagnosis[i].diagnosticsId.diagnosisNameEs
+              .charAt(0)
+              .toUpperCase() +
+            populateDiagnosis[i].diagnosticsId.diagnosisNameEs
+              .slice(1)
+              .toLowerCase(),
           percentage: percentage,
         };
-      } else if (reqCountryCode == CountryCode.ENGLISH || reqCountryCode == CountryCode.ENGLISH_US) {
+      } else if (
+        reqCountryCode == CountryCode.ENGLISH ||
+        reqCountryCode == CountryCode.ENGLISH_US
+      ) {
         diagnosisObj = {
-          possibleDiagnostic: populateDiagnosis[i].diagnosticsId.diagnosisName,
+          possibleDiagnostic:
+            populateDiagnosis[i].diagnosticsId.diagnosisName
+              .charAt(0)
+              .toUpperCase() +
+            populateDiagnosis[i].diagnosticsId.diagnosisName
+              .slice(1)
+              .toLowerCase(),
           percentage: percentage,
         };
       } else {
@@ -115,19 +126,27 @@ router.post("/calculateDiagnotics/:countryCode", async (req, res) => {
     const errorMessage =
       reqCountryCode === CountryCode.SPANISH
         ? errorMessageEs.QUESTION_BY_PAIN_BEHAVIORS_RETRIEVAL_FAILED
-        : reqCountryCode === CountryCode.ENGLISH || reqCountryCode === CountryCode.ENGLISH_US
+        : reqCountryCode === CountryCode.ENGLISH ||
+          reqCountryCode === CountryCode.ENGLISH_US
         ? errorMessageEn.QUESTION_BY_PAIN_BEHAVIORS_RETRIEVAL_FAILED
         : "";
     // Send the resultPercentage array as a response with a status code of 200 (OK)
     !resultPercentage
       ? res.status(errorMessage.statusCode).send(errorMessage.message)
-      : res.status(errorMessageEn.OK.statusCode).send(resultPercentage.sort((a, b) => b.percentage - a.percentage).slice(0, 3));
+      : res
+          .status(errorMessageEn.OK.statusCode)
+          .send(
+            resultPercentage
+              .sort((a, b) => b.percentage - a.percentage)
+              .slice(0, 3)
+          );
   } catch (err) {
     // If an error occurs, retrieve the error message for failed calculate the diagnosis result
     const errorMessage =
       reqCountryCode === CountryCode.SPANISH
         ? errorMessageEs.INTERNAL_SERVER_ERROR
-        : reqCountryCode === CountryCode.ENGLISH || reqCountryCode == CountryCode.ENGLISH_US
+        : reqCountryCode === CountryCode.ENGLISH ||
+          reqCountryCode == CountryCode.ENGLISH_US
         ? errorMessageEn.INTERNAL_SERVER_ERROR
         : "";
     res.status(errorMessage.statusCode).send({

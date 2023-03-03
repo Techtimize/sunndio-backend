@@ -42,14 +42,16 @@ router.get(
         // Map the diagnosis documents to the Spanish version of the diagnosis names
         diagnosis = mappedDiagnosis.map((item) => ({
           _id: item._id,
-          diagnosisName: item.diagnosisNameEs,
+          diagnosisName: item.diagnosisNameEs.charAt(0).toUpperCase() +
+          item.diagnosisNameEs.slice(1).toLowerCase(),
           __v: item.__v,
         }));
       } else if (reqCountryCode === CountryCode.ENGLISH || reqCountryCode === CountryCode.ENGLISH_US) {
         // Map the diagnosis documents to the English version of the diagnosis names
         diagnosis = mappedDiagnosis.map((item) => ({
           _id: item._id,
-          diagnosisName: item.diagnosisName,
+          diagnosisName: item.diagnosisName.charAt(0).toUpperCase() +
+          item.diagnosisName.slice(1).toLowerCase(),
           __v: item.__v,
         }));
       } else {
