@@ -8,10 +8,6 @@ const CountryCode = require("../enums/countryCodeEnum");
 const errorMessageEn = require("../Error-Handling/error-handlingEn.json");
 const errorMessageEs = require("../Error-Handling/error-handlingEs.json");
 
-function capitalizeAfterSymbol(str) {
-  return (capitalizedStr =
-    str.charAt(0).toUpperCase() + str.slice(1).toLowerCase());
-}
 // Route to get questions by pain behavior ID and country code
 router.get(
   "/questionsByPainBehavior/:countryCode/:painBehaviorId",
@@ -38,8 +34,7 @@ router.get(
         question = questionIDs.map((item) => ({
           _id: item._id,
           question:
-            item.questionId.questionEs.charAt(0).toUpperCase() +
-            item.questionId.questionEs.slice(1).toLowerCase(),
+            item.questionId.questionEs,
           gifUrl: item.gifUrl,
         }));
       } else if (
