@@ -25,35 +25,35 @@ router.get("/painareas/:countryCode", async (req, res) => {
   try {
     // Find all pain areas where isLive is true
     const livePainAreas = await PainArea.find({ isLive: true });
-    let painAreaObj = {};
-    let painAreas = [];
+    var painAreas;
     // Check if the country code is Spanish
-    for (i = 0; i < livePainAreas.length; i++) {
-      if (reqCountryCode === CountryCode.SPANISH) {
-        painAreaObj = {
-          _id: livePainAreas[i]._id,
-          name: livePainAreas[i].nameEs,
-        };
-      }
-      // Check if the country code is English
-      else if (
-        reqCountryCode === CountryCode.ENGLISH ||
-        reqCountryCode === CountryCode.ENGLISH_US
-      ) {
-        painAreaObj = {
-          _id: livePainAreas[i]._id,
-          name: livePainAreas[i].name,
-        };
-      }
-      // If the country code is not recognized, return an error response
-      else {
-        const errorMessage = errorMessageEn.INVALID_COUNTRY_CODE;
-        return res.status(errorMessage.statusCode).json({
-          success: `"${reqCountryCode}" ${errorMessage.message}`,
-        });
-      }
-      painAreas.push(painAreaObj);
+    if (reqCountryCode === CountryCode.SPANISH) {
+      painAreas = livePainAreas.map((item) => ({
+        _id: item._id,
+        name:
+          item.nameEs.charAt(0).toUpperCase() +
+          item.nameEs.slice(1).toLowerCase(),
+      }));
     }
+    // Check if the country code is English
+    else if (
+      reqCountryCode === CountryCode.ENGLISH ||
+      reqCountryCode === CountryCode.ENGLISH_US
+    ) {
+      painAreas = livePainAreas.map((item) => ({
+        _id: item._id,
+        name:
+          item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase(),
+      }));
+    }
+    // If the country code is not recognized, return an error response
+    else {
+      const errorMessage = errorMessageEn.INVALID_COUNTRY_CODE;
+      return res.status(errorMessage.statusCode).json({
+        success: `"${reqCountryCode}" ${errorMessage.message}`,
+      });
+    }
+
     const errorMessage =
       reqCountryCode === CountryCode.SPANISH
         ? errorMessageEs.PAIN_AREAS_RETRIEVAL_FAILED

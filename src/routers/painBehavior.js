@@ -36,7 +36,10 @@ router.get(
         if (reqCountryCode === CountryCode.SPANISH) {
           painBehaviorObj = {
             _id: foundPainBehaviors[i]._id,
-            name: foundPainBehaviors[i].nameEs,
+            name:
+              foundPainBehaviors[i].nameEs.charAt(0).toUpperCase() +
+              foundPainBehaviors[i].nameEs.slice(1).toLowerCase(),
+            imageUrl: foundPainBehaviors[i].imageUrl,
           };
         } else if (
           reqCountryCode === CountryCode.ENGLISH ||
@@ -44,7 +47,10 @@ router.get(
         ) {
           painBehaviorObj = {
             _id: foundPainBehaviors[i]._id,
-            name: foundPainBehaviors[i].name,
+            name:
+              foundPainBehaviors[i].name.charAt(0).toUpperCase() +
+              foundPainBehaviors[i].name.slice(1).toLowerCase(),
+            imageUrl: foundPainBehaviors[i].imageUrl,
           };
         } else {
           // If the provided country code is not valid, return an error message
@@ -88,20 +94,26 @@ router.get(
 router.get("/painBehaviors/:countryCode", async (req, res) => {
   const reqCountryCode = req.params.countryCode.toLowerCase();
   try {
-    var foundPainBehaviors;
+    var foundPainBehaviors = await painBehaviorModel.find();
+    var painBehavior;
     // Check the provided country code to return pain behaviors in the appropriate language
     if (reqCountryCode === CountryCode.SPANISH) {
-      foundPainBehaviors = await painBehaviorModel.find(
-        // Return all pain behaviors, except for the name in Spanish
-        {},
-        { name: 0 }
-      );
+      // Return all pain behaviors, except for the name in Enllish
+      painBehavior = foundPainBehaviors.map((item) => ({
+        id: item.id,
+        painBehavior:
+          item.nameEs.charAt(0).toUpperCase() +
+          item.nameEs.slice(1).toLowerCase(),
+        imageUrl: item.imageUrl,
+      }));
     } else if (reqCountryCode === CountryCode.ENGLISH) {
-      foundPainBehaviors = await painBehaviorModel.find(
-        // Return all pain behaviors, except for the name in English
-        {},
-        { nameEs: 0 }
-      );
+      // Return all pain behaviors, except for the name in English
+      painBehavior = foundPainBehaviors.map((item) => ({
+        id: item.id,
+        painBehavior:
+          item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase(),
+        imageUrl: item.imageUrl,
+      }));
     } else {
       // If the provided country code is not valid, return an error message
       res.status(400).json({
@@ -115,9 +127,9 @@ router.get("/painBehaviors/:countryCode", async (req, res) => {
         : reqCountryCode === "en"
         ? errorMessageEn.PAIN_BEHAVIORS_RETRIEVAL_FAILED
         : "";
-    !foundPainBehaviors
+    !painBehavior
       ? res.status(errorMessage.statusCode).send(errorMessage.message)
-      : res.status(errorMessageEn.OK.statusCode).send(foundPainBehaviors);
+      : res.status(errorMessageEn.OK.statusCode).send(painBehavior);
   } catch (err) {
     // Return a server error if something went wrong while fetching the data
     const errorMessage =

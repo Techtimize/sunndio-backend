@@ -25,31 +25,31 @@ router.get(
       const getPaindefinition = await paindefinition.find({
         painAreaId: req.params.painAreaId,
       });
-      let painDefinitionObj = {};
-      let painDefinitions = [];
-      for (i = 0; i < getPaindefinition.length; i++) {
-        // Check if the request country code is valid
-        if (reqCountryCode === CountryCode.SPANISH) {
-          painDefinitionObj = {
-            _id: getPaindefinition[i]._id,
-            name: getPaindefinition[i].nameEs,
-          };
-        } else if (
-          reqCountryCode === CountryCode.ENGLISH ||
-          reqCountryCode === CountryCode.ENGLISH_US
-        ) {
-          painDefinitionObj = {
-            _id: getPaindefinition[i]._id,
-            name: getPaindefinition[i].name,
-          };
-        } else {
-          // Return an error if the country code is not valid
-          const errorMessage = errorMessageEn.INVALID_COUNTRY_CODE;
-          return res.status(errorMessage.statusCode).json({
-            success: `"${reqCountryCode}" ${errorMessage.message}`,
-          });
-        }
-        painDefinitions.push(painDefinitionObj);
+      var painDefinitions;
+      // Check if the request country code is valid
+      if (reqCountryCode === CountryCode.SPANISH) {
+        painDefinitions = getPaindefinition.map(item =>({
+          _id: item._id,
+          name: item.nameEs.charAt(0).toUpperCase() +
+          item.nameEs.slice(1).toLowerCase(),
+          imageUrl: item.imageUrl,
+        }));
+      } else if (
+        reqCountryCode === CountryCode.ENGLISH ||
+        reqCountryCode === CountryCode.ENGLISH_US
+      ) {
+        painDefinitions = getPaindefinition.map(item =>({
+          _id: item._id,
+          name: item.name.charAt(0).toUpperCase() +
+          item.name.slice(1).toLowerCase(),
+          imageUrl: item.imageUrl,
+        }));
+      } else {
+        // Return an error if the country code is not valid
+        const errorMessage = errorMessageEn.INVALID_COUNTRY_CODE;
+        return res.status(errorMessage.statusCode).json({
+          success: `"${reqCountryCode}" ${errorMessage.message}`,
+        });
       }
       const errorMessage =
         reqCountryCode === CountryCode.SPANISH

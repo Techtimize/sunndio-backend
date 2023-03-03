@@ -17,7 +17,12 @@ const painBehaviorSchema = new mongoose.Schema({
         type : String,
         require :true,
         unique : true
+    },
+    imageUrl : {
+        type : String,
+        required : true
     }
+
 });
 
 // Export the painBehavior model

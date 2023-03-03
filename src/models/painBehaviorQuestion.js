@@ -9,6 +9,10 @@ const painBehaviorQuestionSchema = mongoose.Schema({
     questionId : {
         type : mongoose.Schema.Types.ObjectId,
         ref : 'Question'
+    },
+    gifUrl : {
+        type : String,
+        required : true
     }
 });
 
