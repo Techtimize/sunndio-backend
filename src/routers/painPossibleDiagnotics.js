@@ -17,6 +17,9 @@ const possibleDiagnosis = (painBehaviorId) => {
       {
         isPossibleDiag: 0,
         painBehaviorId: 0,
+      },
+      {
+        sort: { _id: 1 },
       }
     )
     .populate("diagnosticsId");
@@ -27,7 +30,7 @@ const possibleDiagnosis = (painBehaviorId) => {
 router.get(
   "/painPossibleDiagBypainBehaviorId/:countryCode/:painBehaviorId",
   async (req, res) => {
-  const reqCountryCode = req.params.countryCode.toLowerCase();
+    const reqCountryCode = req.params.countryCode.toLowerCase();
     try {
       // Get the possible diagnosis IDs using the possibleDiagnosis function
       const populatDiagnosis = await possibleDiagnosis(
@@ -43,7 +46,7 @@ router.get(
         diagnosis = mappedDiagnosis.map((item) => ({
           _id: item._id,
           diagnosisName: item.diagnosisNameEs.charAt(0).toUpperCase() +
-          item.diagnosisNameEs.slice(1).toLowerCase(),
+            item.diagnosisNameEs.slice(1).toLowerCase(),
           __v: item.__v,
         }));
       } else if (reqCountryCode === CountryCode.ENGLISH || reqCountryCode === CountryCode.ENGLISH_US) {
@@ -51,7 +54,7 @@ router.get(
         diagnosis = mappedDiagnosis.map((item) => ({
           _id: item._id,
           diagnosisName: item.diagnosisName.charAt(0).toUpperCase() +
-          item.diagnosisName.slice(1).toLowerCase(),
+            item.diagnosisName.slice(1).toLowerCase(),
           __v: item.__v,
         }));
       } else {
@@ -66,8 +69,8 @@ router.get(
         reqCountryCode === CountryCode.SPANISH
           ? errorMessageEs.PAIN_AREAS_RETRIEVAL_FAILED
           : reqCountryCode === CountryCode.ENGLISH || reqCountryCode === CountryCode.ENGLISH_US
-          ? errorMessageEn.PAIN_AREAS_RETRIEVAL_FAILED
-          : "";
+            ? errorMessageEn.PAIN_AREAS_RETRIEVAL_FAILED
+            : "";
       !diagnosis
         ? res.status(errorMessage.statusCode).send(errorMessage.message)
         : res.status(errorMessageEn.OK.statusCode).send(diagnosis);
@@ -77,8 +80,8 @@ router.get(
         reqCountryCode === CountryCode.SPANISH
           ? errorMessageEs.INTERNAL_SERVER_ERROR
           : reqCountryCode === CountryCode.ENGLISH || reqCountryCode === CountryCode.ENGLISH_US
-          ? errorMessageEn.INTERNAL_SERVER_ERROR
-          : "";
+            ? errorMessageEn.INTERNAL_SERVER_ERROR
+            : "";
       res.status(errorMessage.statusCode).send({
         success: false,
         message: errorMessage.message,

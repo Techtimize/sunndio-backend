@@ -23,6 +23,9 @@ router.get(
           },
           {
             painBehaviorId: 0,
+          },
+          {
+            sort: { _id: 1 }
           }
         )
         .populate("questionId");
@@ -62,8 +65,8 @@ router.get(
           ? errorMessageEs.QUESTION_BY_PAIN_BEHAVIORS_RETRIEVAL_FAILED
           : reqCountryCode === CountryCode.ENGLISH ||
             reqCountryCode === CountryCode.ENGLISH_US
-          ? errorMessageEn.QUESTION_BY_PAIN_BEHAVIORS_RETRIEVAL_FAILED
-          : "";
+            ? errorMessageEn.QUESTION_BY_PAIN_BEHAVIORS_RETRIEVAL_FAILED
+            : "";
       // Check if any questions were found and send a response accordingly
       !question
         ? res.status(errorMessage.statusCode).send(errorMessage.message)
@@ -75,8 +78,8 @@ router.get(
           ? errorMessageEs.INTERNAL_SERVER_ERROR
           : reqCountryCode === CountryCode.ENGLISH ||
             reqCountryCode === CountryCode.ENGLISH_US
-          ? errorMessageEn.INTERNAL_SERVER_ERROR
-          : "";
+            ? errorMessageEn.INTERNAL_SERVER_ERROR
+            : "";
       res.status(errorMessage.statusCode).send({
         success: false,
         message: errorMessage.message,
