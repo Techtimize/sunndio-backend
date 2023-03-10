@@ -21,7 +21,7 @@ router.post("/diagnostic", async (req, res) => {
 // Get all the diagnostics from the database
 router.get("/diagnostic/:countryCode", async (req, res) => {
   try {
-    var getDiagnostic = await Diagnostic.find();
+    var getDiagnostic = await Diagnostic.find({}, {}, { sort: { _id: 1 } });
     var diagnosticObject;
     if (req.params.countryCode === CountryCode.SPANISH) {
       // Retrieve all the diagnostics from the database

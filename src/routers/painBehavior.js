@@ -28,7 +28,7 @@ router.get(
     try {
       var foundPainBehaviors = await painBehaviorModel.find({
         painDefinitionId: req.params.painDefinitionId,
-      });
+      }, {}, {sort: {_id : 1}});
       let painBehaviorObj = {};
       let painBehaviors = [];
       for (i = 0; i < foundPainBehaviors.length; i++) {
@@ -94,7 +94,7 @@ router.get(
 router.get("/painBehaviors/:countryCode", async (req, res) => {
   const reqCountryCode = req.params.countryCode.toLowerCase();
   try {
-    var foundPainBehaviors = await painBehaviorModel.find();
+    var foundPainBehaviors = await painBehaviorModel.find({},{}, {sort: {_id : 1}});
     var painBehavior;
     // Check the provided country code to return pain behaviors in the appropriate language
     if (reqCountryCode === CountryCode.SPANISH) {
@@ -168,7 +168,7 @@ router.get("/painbehavior/:painBehaviorId", async (req, res) => {
 //Update a pain behavior by id in the MongoDB
 router.patch("/painbehavior/:painBehaviorId", async (req, res) => {
   try {
-    const updatedPainBehavior = await PainBehavior.findByIdAndUpdate(
+    const updatedPainBehavior = await painBehaviorModel.findByIdAndUpdate(
       req.params.painBehaviorId,
       req.body,
       {
@@ -184,7 +184,7 @@ router.patch("/painbehavior/:painBehaviorId", async (req, res) => {
 //Delete a pain behavior by id from the MongoDB
 router.delete("/painbehavior/:painBehaviorId", async (req, res) => {
   try {
-    const deletedPainBehavior = await PainBehavior.findByIdAndDelete(
+    const deletedPainBehavior = await painBehaviorModel.findByIdAndDelete(
       req.params.painBehaviorId
     );
     if (!deletedPainBehavior) {

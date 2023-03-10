@@ -24,7 +24,7 @@ router.get(
       // Find all pain definitions for a specific pain area
       const getPaindefinition = await paindefinition.find({
         painAreaId: req.params.painAreaId,
-      });
+      }, {}, { sort: { _id: 1 }});
       var painDefinitions;
       // Check if the request country code is valid
       if (reqCountryCode === CountryCode.SPANISH) {
@@ -86,10 +86,10 @@ router.get("/painDefinitions/:countryCode", async (req, res) => {
     // Check if the request country code is valid
     if (reqCountryCode === CountryCode.SPANISH) {
       // Find all pain definitions, excluding the name field in English
-      getPaindefinition = await paindefinition.find({}, { name: 0 });
+      getPaindefinition = await paindefinition.find({}, { name: 0 }, {sort : {_id : 1}});
     } else if (reqCountryCode === CountryCode.ENGLISH) {
       // Find all pain definitions, excluding the nameEs field in Spanish
-      getPaindefinition = await paindefinition.find({}, { nameEs: 0 });
+      getPaindefinition = await paindefinition.find({}, { nameEs: 0 }, {sort : {_id : 1}});
     } else {
       // Return an error if the country code is not valid
       const errorMessage = errorMessageEs.INVALID_COUNTRY_CODE;
